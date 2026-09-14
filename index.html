@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>Nightly Accountability</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --surface:#141b31; --surface-2:#1b2542; --text:#f4f7ff; --muted:#aeb9d5; --line:#2b385d; --accent:#8b7bff; --accent-2:#b7aefe; --good:#58d6a5; --shadow:0 18px 48px rgba(0,0,0,.26); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; background:radial-gradient(circle at 14% 0%, #1a2450 0, transparent 32rem), var(--bg); color:var(--text); font:16px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    main { width:min(100% - 32px, 720px); margin:0 auto; padding:36px 0 56px; }
+    .eyebrow { color:var(--accent-2); font-size:.78rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; margin:0 0 8px; }
+    h1 { font-size:clamp(1.9rem, 6vw, 2.7rem); line-height:1.05; letter-spacing:-.04em; margin:0; }
+    .date { color:var(--muted); margin:9px 0 25px; font-size:1.05rem; }
+    .grid { display:grid; grid-template-columns:1.1fr .9fr; gap:14px; margin-bottom:14px; }
+    .card { background:linear-gradient(145deg, rgba(27,37,66,.98), rgba(20,27,49,.98)); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); }
+    .score-card { padding:22px; display:flex; flex-direction:column; justify-content:center; min-height:145px; }
+    .score-caption, .mini-label { color:var(--muted); font-size:.85rem; font-weight:650; }
+    .score { font-size:3.5rem; line-height:1; letter-spacing:-.07em; font-weight:800; margin:4px 0 7px; }
+    .score span { font-size:1.2rem; letter-spacing:0; color:var(--muted); font-weight:600; }
+    .progress { height:9px; border-radius:999px; background:#0d1326; overflow:hidden; }
+    .progress > div { height:100%; width:0%; border-radius:inherit; background:linear-gradient(90deg, var(--accent), var(--good)); transition:width .2s ease; }
+    .stats { padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:16px; align-content:center; }
+    .stat-value { font-weight:800; font-size:1.55rem; line-height:1.1; margin-top:3px; }
+    .stat-detail { color:var(--muted); font-size:.79rem; margin-top:2px; }
+    .section { padding:12px; margin-bottom:14px; }
+    .habit { display:flex; align-items:center; gap:14px; width:100%; min-height:62px; padding:12px 13px; border-radius:14px; cursor:pointer; user-select:none; transition:background .18s ease; }
+    .habit:hover { background:rgba(139,123,255,.1); }
+    .task-group + .task-group { border-top:1px solid rgba(174,185,213,.12); }
+    .habit input { appearance:none; flex:0 0 25px; width:25px; height:25px; border:2px solid #7986ac; border-radius:8px; margin:0; background:transparent; display:grid; place-content:center; cursor:pointer; }
+    .habit input::after { content:"✓"; color:#10162a; font-weight:900; font-size:17px; transform:scale(0); transition:transform .12s ease; }
+    .habit input:checked { background:var(--good); border-color:var(--good); }
+    .habit input:checked::after { transform:scale(1); }
+    .habit input:focus-visible, textarea:focus-visible, button:focus-visible { outline:3px solid var(--accent-2); outline-offset:3px; }
+    .habit-text { font-weight:650; letter-spacing:-.01em; }
+    .habit-sub { color:var(--muted); display:block; font-size:.82rem; font-weight:400; margin-top:1px; }
+    .subtasks { margin:0 0 5px 39px; }
+    .subtask { display:flex; align-items:center; gap:10px; min-height:42px; padding:7px 8px; color:var(--muted); cursor:pointer; }
+    .subtask input { appearance:none; flex:0 0 19px; width:19px; height:19px; border:2px solid #7986ac; border-radius:6px; margin:0; background:transparent; display:grid; place-content:center; cursor:pointer; }
+    .subtask input::after { content:"✓"; color:#10162a; font-weight:900; font-size:13px; transform:scale(0); transition:transform .12s ease; }
+    .subtask input:checked { background:var(--good); border-color:var(--good); }
+    .subtask input:checked::after { transform:scale(1); }
+    .subtask input:focus-visible { outline:3px solid var(--accent-2); outline-offset:3px; }
+    .add-subtask { margin:0 0 6px 39px; padding:5px 8px; border:0; border-radius:8px; background:transparent; color:var(--accent-2); font:inherit; font-size:.84rem; font-weight:700; cursor:pointer; }
+    .add-subtask:hover { background:rgba(139,123,255,.1); }
+    .add-habit { display:flex; align-items:center; gap:9px; width:100%; min-height:52px; margin-top:4px; padding:10px 13px; border:0; border-radius:14px; background:transparent; color:var(--accent-2); font:inherit; font-weight:750; text-align:left; cursor:pointer; }
+    .add-habit:hover { background:rgba(139,123,255,.1); }
+    .add-icon { display:inline-grid; place-items:center; width:25px; height:25px; border:1px solid currentColor; border-radius:50%; font-size:1.3rem; font-weight:400; line-height:1; }
+    .add-form { display:flex; gap:8px; padding:9px 5px 5px; }
+    .add-form input { min-width:0; flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#0d1326; color:var(--text); font:inherit; }
+    .add-form button { padding:9px 13px; border:0; border-radius:10px; background:var(--accent); color:#10162a; font:inherit; font-weight:800; cursor:pointer; }
+    .task-actions { display:flex; gap:3px; margin-left:auto; }
+    .rename-habit, .remove-habit { padding:7px; border:0; border-radius:8px; background:transparent; color:var(--muted); font:inherit; cursor:pointer; }
+    .rename-habit:hover, .remove-habit:hover { background:rgba(255,255,255,.08); color:var(--text); }
+    .reflection { padding:20px; margin-bottom:14px; }
+    label { display:block; font-weight:700; margin-bottom:8px; }
+    textarea { resize:vertical; min-height:62px; width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#0d1326; color:var(--text); font:inherit; }
+    textarea::placeholder { color:#7f8aab; }
+    .save-note { color:var(--muted); font-size:.8rem; margin:8px 0 0; }
+    .history { padding:20px; }
+    .history-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    h2 { font-size:1.12rem; margin:0; letter-spacing:-.02em; }
+    .history-hint { color:var(--muted); font-size:.79rem; white-space:nowrap; }
+    .history-list { list-style:none; margin:0; padding:0; }
+    .history-row { display:grid; grid-template-columns:1fr auto 22px; align-items:center; gap:12px; width:100%; padding:13px 4px; border:0; border-top:1px solid rgba(174,185,213,.13); background:transparent; color:var(--text); text-align:left; font:inherit; cursor:pointer; }
+    .history-row:hover .history-date { color:var(--accent-2); }
+    .history-date { font-weight:650; }
+    .history-reflection { color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.83rem; margin-top:2px; max-width:420px; }
+    .history-score { font-weight:800; color:var(--good); white-space:nowrap; }
+    .arrow { color:var(--muted); font-size:1.25rem; }
+    .empty { padding:19px 4px 5px; color:var(--muted); }
+    .notice { margin:12px 0 0; color:var(--good); min-height:1.25em; font-size:.84rem; }
+    .back { appearance:none; padding:0; border:0; background:transparent; color:var(--accent-2); font:inherit; font-weight:700; cursor:pointer; margin-bottom:14px; }
+    [hidden] { display:none !important; }
+    @media (max-width:520px) { main { width:min(100% - 24px, 720px); padding-top:26px; } .grid { grid-template-columns:1fr; } .score-card { min-height:130px; } .stats { padding:18px; } .history-reflection { max-width:210px; } }
+    @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <button class="back" id="backButton" hidden type="button">← Back to tonight</button>
+    <p class="eyebrow">Nightly accountability</p>
+    <h1 id="title">Tonight's check-in</h1>
+    <p class="date" id="dateLabel"></p>
+
+    <div class="grid" aria-label="Progress summary">
+      <section class="card score-card">
+        <div class="score-caption">Today's score</div>
+        <div class="score" aria-live="polite"><span id="score">0</span> <span id="scoreTotal">/ 5</span></div>
+        <div class="progress" role="progressbar" aria-label="Today's completed habits" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0"><div id="progressBar"></div></div>
+      </section>
+      <section class="card stats">
+        <div><div class="mini-label">Current streak</div><div class="stat-value" id="streak">0 days</div><div class="stat-detail" id="streakDetail">days at full score</div></div>
+        <div><div class="mini-label">Weekly average</div><div class="stat-value" id="weekly">—</div><div class="stat-detail" id="weeklyDetail">no check-ins yet</div></div>
+      </section>
+    </div>
+
+    <section class="card section" aria-label="Daily habits" id="habitSection">
+      <div id="habitList"></div>
+      <button class="add-habit" id="showAddHabit" type="button"><span class="add-icon" aria-hidden="true">+</span>Add another habit</button>
+      <form class="add-form" id="addHabitForm" hidden><input id="newHabitName" maxlength="45" placeholder="e.g. Read for 20 minutes" aria-label="New habit name"><button type="submit">Add</button></form>
+    </section>
+
+    <section class="card reflection">
+      <label for="reflection">One-line reflection</label>
+      <textarea id="reflection" rows="2" maxlength="180" placeholder="What helped, what got in the way, or what will you adjust tomorrow?"></textarea>
+      <p class="save-note">Saved automatically on this device.</p>
+      <p class="notice" id="notice" aria-live="polite"></p>
+    </section>
+
+    <section class="card history">
+      <div class="history-head"><h2>Daily history</h2><span class="history-hint">Tap a day to view it</span></div>
+      <ul class="history-list" id="historyList"></ul>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const KEY = 'nightly-accountability-v1';
+      const baseHabits = [
+        { id:'work', name:'Work completed' },
+        { id:'iba', name:'IBA', detail:'2 hours' },
+        { id:'business', name:'Business', detail:'1 hour' },
+        { id:'workout', name:'Workout / Running' },
+        { id:'phone', name:'Phone controlled' }
+      ];
+      const el = id => document.getElementById(id);
+      const dateKey = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const todayKey = () => dateKey(new Date());
+      const toDate = key => new Date(key + 'T12:00:00');
+      const displayDate = key => toDate(key).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+      const shortDate = key => toDate(key).toLocaleDateString(undefined, { month:'short', day:'numeric', year: toDate(key).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
+      let data;
+      try { data = JSON.parse(localStorage.getItem(KEY)) || { days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{} }; } catch { data = { days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{} }; }
+      if (!data.days || typeof data.days !== 'object') data.days = {};
+      if (!Array.isArray(data.customHabits)) data.customHabits = [];
+      if (!data.subtasks || typeof data.subtasks !== 'object') data.subtasks = {};
+      if (!Array.isArray(data.hiddenBaseHabits)) data.hiddenBaseHabits = [];
+      if (!data.renamedBaseHabits || typeof data.renamedBaseHabits !== 'object') data.renamedBaseHabits = {};
+      let viewing = todayKey();
+      let saveTimer;
+      const getDay = key => data.days[key] || { habits:{}, reflection:'' };
+      const allHabits = () => [...baseHabits.filter(habit => !data.hiddenBaseHabits.includes(habit.id)).map(habit => habit.id), ...data.customHabits.map(habit => habit.id)];
+      const score = day => allHabits().reduce((total, habit) => {
+        const subtasks = data.subtasks[habit] || [];
+        if (!subtasks.length) return total + Boolean(day.habits && day.habits[habit]);
+        const completed = subtasks.filter(subtask => day.habits && day.habits[`${habit}::${subtask.id}`]).length;
+        return total + (completed / subtasks.length);
+      }, 0);
+      const formatScore = value => Number(value.toFixed(2)).toString();
+      const persist = () => localStorage.setItem(KEY, JSON.stringify(data));
+      const ensureDay = key => { if (!data.days[key]) data.days[key] = { habits:{}, reflection:'' }; return data.days[key]; };
+      const isToday = () => viewing === todayKey();
+
+      function streak() {
+        if (!allHabits().length) return 0;
+        let count = 0, cursor = new Date(); cursor.setHours(12,0,0,0);
+        while (true) {
+          const key = dateKey(cursor);
+          if (score(getDay(key)) !== allHabits().length) break;
+          count++; cursor.setDate(cursor.getDate() - 1);
+        }
+        return count;
+      }
+      function weekly() {
+        const keys = Object.keys(data.days).filter(key => {
+          const daysAgo = Math.floor((new Date(todayKey() + 'T12:00:00') - toDate(key)) / 86400000);
+          return daysAgo >= 0 && daysAgo < 7;
+        });
+        if (!keys.length) return null;
+        return { average: keys.reduce((sum, key) => sum + score(getDay(key)), 0) / keys.length, count:keys.length };
+      }
+      function render() {
+        const day = getDay(viewing), currentScore = score(day), total = allHabits().length, weeklyData = weekly();
+        el('dateLabel').textContent = displayDate(viewing);
+        el('title').textContent = isToday() ? "Tonight's check-in" : "Past check-in";
+        el('backButton').hidden = isToday();
+        el('score').textContent = formatScore(currentScore);
+        el('scoreTotal').textContent = `/ ${total}`;
+        el('progressBar').style.width = `${total ? (currentScore / total) * 100 : 0}%`;
+        document.querySelector('.progress').setAttribute('aria-valuenow', currentScore);
+        document.querySelector('.progress').setAttribute('aria-valuemax', total);
+        renderHabits();
+        document.querySelectorAll('[data-habit]').forEach(box => {
+          const subtasks = data.subtasks[box.dataset.habit] || [];
+          if (subtasks.length) {
+            const completed = subtasks.filter(subtask => day.habits && day.habits[`${box.dataset.habit}::${subtask.id}`]).length;
+            box.checked = completed === subtasks.length;
+            box.indeterminate = completed > 0 && completed < subtasks.length;
+          } else {
+            box.checked = Boolean(day.habits && day.habits[box.dataset.habit]);
+            box.indeterminate = false;
+          }
+        });
+        el('reflection').value = day.reflection || '';
+        el('streak').textContent = `${streak()} ${streak() === 1 ? 'day' : 'days'}`;
+        el('streakDetail').textContent = `days at ${total} / ${total}`;
+        el('weekly').textContent = weeklyData && total ? `${formatScore(weeklyData.average)} / ${total}` : '—';
+        el('weeklyDetail').textContent = weeklyData && total ? `last 7 days · ${weeklyData.count} ${weeklyData.count === 1 ? 'check-in' : 'check-ins'}` : 'no check-ins yet';
+        renderHistory();
+      }
+      function renderHabits() {
+        const container = el('habitList'); container.innerHTML = '';
+        const tasks = [...baseHabits.filter(task => !data.hiddenBaseHabits.includes(task.id)).map(task => ({ ...task, name:data.renamedBaseHabits[task.id] || task.name })), ...data.customHabits];
+        tasks.forEach(task => {
+          const group = document.createElement('div'); group.className = 'task-group';
+          const isBaseTask = baseHabits.some(item => item.id === task.id);
+          const actions = `<span class="task-actions"><button class="rename-habit" type="button" aria-label="Rename ${escapeHtml(task.name)}">Rename</button><button class="remove-habit" type="button" aria-label="Remove ${escapeHtml(task.name)}">Remove</button></span>`;
+          group.innerHTML = `<label class="habit"><input type="checkbox" data-habit="${task.id}"><span class="habit-text">${escapeHtml(task.name)}${task.detail ? `<span class="habit-sub">${escapeHtml(task.detail)}</span>` : ''}</span>${actions}</label><div class="subtasks"></div><button class="add-subtask" type="button">+ Add subtask</button>`;
+          const subtaskList = group.querySelector('.subtasks');
+          (data.subtasks[task.id] || []).forEach(subtask => {
+            const subtaskLabel = document.createElement('label'); subtaskLabel.className = 'subtask';
+            subtaskLabel.innerHTML = `<input type="checkbox" data-habit="${task.id}::${subtask.id}"><span>${escapeHtml(subtask.name)}</span>`;
+            subtaskList.append(subtaskLabel);
+          });
+          group.querySelector('.remove-habit').addEventListener('click', event => {
+            event.preventDefault();
+            if (isBaseTask) data.hiddenBaseHabits.push(task.id);
+            else data.customHabits = data.customHabits.filter(item => item.id !== task.id);
+            delete data.subtasks[task.id]; persist(); render();
+          });
+          group.querySelector('.rename-habit').addEventListener('click', event => { event.preventDefault(); showRenameForm(group, task, isBaseTask); });
+          group.querySelector('.add-subtask').addEventListener('click', () => showSubtaskForm(group, task.id));
+          container.append(group);
+        });
+      }
+      function showSubtaskForm(group, taskId) {
+        if (group.querySelector('.subtask-form')) return group.querySelector('.subtask-form input').focus();
+        const form = document.createElement('form'); form.className = 'add-form subtask-form';
+        form.innerHTML = '<input maxlength="45" placeholder="New subtask" aria-label="New subtask name"><button type="submit">Add</button>';
+        form.addEventListener('submit', event => { event.preventDefault(); const input = form.querySelector('input'); const name = input.value.trim(); if (!name) return; if (!data.subtasks[taskId]) data.subtasks[taskId] = []; data.subtasks[taskId].push({ id:`sub-${Date.now()}`, name }); persist(); render(); el('notice').textContent = 'Subtask added.'; });
+        group.append(form); form.querySelector('input').focus();
+      }
+      function showRenameForm(group, task, isBaseTask) {
+        if (group.querySelector('.rename-form')) return group.querySelector('.rename-form input').focus();
+        const form = document.createElement('form'); form.className = 'add-form rename-form';
+        form.innerHTML = `<input maxlength="45" value="${escapeHtml(task.name)}" aria-label="New task name"><button type="submit">Save</button>`;
+        form.addEventListener('submit', event => {
+          event.preventDefault(); const input = form.querySelector('input'); const name = input.value.trim(); if (!name) return;
+          if (isBaseTask) data.renamedBaseHabits[task.id] = name;
+          else { const customTask = data.customHabits.find(item => item.id === task.id); if (customTask) customTask.name = name; }
+          persist(); render(); el('notice').textContent = 'Task renamed.';
+        });
+        group.append(form); form.querySelector('input').focus(); form.querySelector('input').select();
+      }
+      function renderHistory() {
+        const list = el('historyList'); list.innerHTML = '';
+        const keys = Object.keys(data.days).sort((a,b) => b.localeCompare(a)).slice(0, 21);
+        if (!keys.length) { list.innerHTML = '<li class="empty">Your completed check-ins will appear here.</li>'; return; }
+        keys.forEach(key => {
+          const day = getDay(key), item = document.createElement('li'), button = document.createElement('button');
+          button.type = 'button'; button.className = 'history-row'; button.setAttribute('aria-label', `Open check-in for ${displayDate(key)}`);
+          button.innerHTML = `<span><span class="history-date">${shortDate(key)}</span>${day.reflection ? `<span class="history-reflection">${escapeHtml(day.reflection)}</span>` : ''}</span><span class="history-score">${formatScore(score(day))} / ${allHabits().length}</span><span class="arrow" aria-hidden="true">›</span>`;
+          button.addEventListener('click', () => { viewing = key; el('notice').textContent = ''; render(); window.scrollTo({ top:0, behavior:'smooth' }); });
+          item.append(button); list.append(item);
+        });
+      }
+      function escapeHtml(value) { const node = document.createElement('div'); node.textContent = value; return node.innerHTML; }
+      function changed() { persist(); render(); el('notice').textContent = 'Saved.'; clearTimeout(saveTimer); saveTimer = setTimeout(() => { el('notice').textContent = ''; }, 1300); }
+      document.addEventListener('change', event => {
+        if (!event.target.matches('[data-habit]')) return;
+        const day = ensureDay(viewing), habit = event.target.dataset.habit, subtasks = data.subtasks[habit] || [];
+        if (subtasks.length) subtasks.forEach(subtask => { day.habits[`${habit}::${subtask.id}`] = event.target.checked; });
+        else day.habits[habit] = event.target.checked;
+        changed();
+      });
+      el('reflection').addEventListener('input', event => { ensureDay(viewing).reflection = event.target.value; changed(); });
+      el('backButton').addEventListener('click', () => { viewing = todayKey(); el('notice').textContent = ''; render(); });
+      el('showAddHabit').addEventListener('click', () => { el('addHabitForm').hidden = false; el('newHabitName').focus(); });
+      el('addHabitForm').addEventListener('submit', event => { event.preventDefault(); const name = el('newHabitName').value.trim(); if (!name) return; data.customHabits.push({ id:`custom-${Date.now()}`, name }); el('newHabitName').value = ''; el('addHabitForm').hidden = true; persist(); render(); el('notice').textContent = 'New habit added.'; });
+      render();
+    })();
+  </script>
+</body>
+</html>
