@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="nightly-check-logo.png">
   <link rel="apple-touch-icon" href="nightly-check-logo.png">
   <title>Nightly Accountability</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <style>
     :root { color-scheme: dark; --bg:#0b1020; --surface:#141b31; --surface-2:#1b2542; --text:#f4f7ff; --muted:#aeb9d5; --line:#2b385d; --accent:#8b7bff; --accent-2:#b7aefe; --good:#58d6a5; --shadow:0 18px 48px rgba(0,0,0,.26); }
     * { box-sizing:border-box; }
@@ -82,19 +83,76 @@
     [hidden] { display:none !important; }
     @media (max-width:520px) { .topbar-inner, main { width:min(100% - 24px, 720px); } main { padding-top:26px; } .grid { grid-template-columns:1fr; } .score-card { min-height:130px; } .stats { padding:18px; } .history-reflection { max-width:210px; } }
     @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; } }
+    html { scroll-behavior:smooth; scroll-padding-top:90px; overflow-x:hidden; }
+    body { background:#080c18; }
+    body::before { content:''; position:fixed; inset:0; pointer-events:none; background-image:radial-gradient(1px 1px at 20% 30%,#e0e0ff 90%,transparent),radial-gradient(1px 1px at 80% 60%,#bbc8ff 90%,transparent),radial-gradient(2px 2px at 45% 15%,#aaa1df 60%,transparent); background-size:197px 223px,307px 281px,433px 397px; opacity:.35; z-index:-1; }
+    .topbar { position:fixed; width:100%; background:transparent; border-color:transparent; transition:background .5s; }
+    .topbar.scrolled { background:rgba(8,12,24,.9); border-color:var(--line); }
+    .topbar-inner { width:min(100% - 40px,1120px); justify-content:space-between; gap:12px; }
+    .brand-subtitle { display:none; }
+    .nav-actions { display:flex; align-items:center; gap:8px; }
+    .nav-actions a,.quiet-button { color:var(--text); background:rgba(8,12,24,.5); border:1px solid #ffffff30; padding:9px 15px; border-radius:30px; font:inherit; font-size:.8rem; text-decoration:none; cursor:pointer; }
+    .hero { position:relative; min-height:100svh; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; padding:130px 24px 80px; background:#080c18; }
+    .hero video { position:absolute; width:100%; height:100%; inset:0; object-fit:cover; opacity:.6; animation:reveal-scene 1.4s cubic-bezier(.16,1,.3,1) both; }
+    .hero::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 15%,rgba(8,12,24,.4) 50%,#080c18); pointer-events:none; }
+    .stars { position:absolute; inset:0; pointer-events:none; }
+    .star { position:absolute; width:2px; height:2px; background:#e9e5ff; border-radius:50%; box-shadow:0 0 7px #c1b8ff; animation:twinkle 5s ease-in-out infinite alternate; }
+    .hero-content { position:relative; z-index:1; text-align:center; max-width:760px; }
+    .hero h1 { font-family:'Instrument Serif',Georgia,serif; font-weight:400; font-size:clamp(3.4rem,8vw,6.4rem); letter-spacing:-.035em; line-height:.98; }
+    .hero h1 em { color:#c5baff; font-weight:400; }
+    .hero-copy { color:#c1c7dc; max-width:420px; margin:24px auto 30px; }
+    .hero-content > * { animation:rise-in .9s cubic-bezier(.16,1,.3,1) both; }
+    .hero-content h1 { animation-delay:.4s; } .hero-copy { animation-delay:.6s; } .hero-content .hero-cta { animation-delay:.8s; }
+    .hero-cta { display:inline-block; border-radius:40px; padding:15px 27px; background:#eeeaff; color:#171226; font-weight:650; text-decoration:none; }
+    .hero-foot { font-size:.75rem; color:#a1a9c2; margin-top:24px; letter-spacing:.1em; }
+    main { position:relative; padding-top:40px; }
+    .card { background:linear-gradient(145deg,rgba(27,33,56,.94),rgba(15,20,37,.94)); border-color:#ffffff16; }
+    .score #score { font-size:3.5rem; color:var(--text); font-weight:800; letter-spacing:-.06em; }
+    .week-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:7px; margin:18px 0 24px; }
+    .week-day { padding:12px 2px; border:1px solid #ffffff14; border-radius:14px; color:var(--muted); background:#11182b; font:inherit; font-size:.72rem; cursor:pointer; }
+    .week-day strong { display:block; color:#e6dcff; font-size:1rem; margin-top:7px; }
+    .week-day[aria-current="date"] { border-color:#ac9aea; }
+    .focus-input { width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#0d1326; color:var(--text); font:inherit; margin-bottom:8px; }
+    .points { color:var(--accent-2); font-size:.73rem; white-space:nowrap; margin-left:auto; }
+    .footer-note { display:flex; justify-content:space-between; align-items:center; gap:14px; color:var(--muted); font-size:.78rem; margin:24px 0; }
+    .task-intro { padding:14px 13px 18px; }
+    .task-intro h2 { font-size:1.3rem; }
+    .task-intro p,.review-copy { color:var(--muted); font-size:.9rem; margin:8px 0 0; }
+    .weekly-review { padding:22px; margin-bottom:14px; }
+    .review-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 0; }
+    .review-item { background:#ffffff04; border:1px solid #ffffff12; border-radius:14px; padding:16px; min-width:0; }
+    .review-item h3 { font-size:.8rem; color:var(--accent-2); margin:0 0 8px; }
+    .review-item p { margin:0; overflow-wrap:anywhere; }
+    .review-item small { display:block; color:var(--muted); margin-top:8px; }
+    .review-focus { border-left:2px solid var(--good); padding-left:14px; color:var(--text); font-size:.9rem; }
+    @media(max-width:520px) { .review-grid { grid-template-columns:1fr; } }
+    a:focus-visible,input:focus-visible { outline:3px solid var(--accent-2); outline-offset:4px; }
+    @keyframes twinkle { from { opacity:.15; } to { opacity:.85; } }
+    @keyframes reveal-scene { from { opacity:0; transform:scale(1.05); } to { opacity:.6; transform:scale(1); } }
+    @keyframes rise-in { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+    body.motion-off *,body.motion-off *::before,body.motion-off *::after { animation:none!important; scroll-behavior:auto; }
+    @media(max-width:520px) { .brand { font-size:.9rem; } .brand-logo { width:30px; height:30px; } .nav-actions a,.quiet-button { padding:8px 10px; font-size:.72rem; } .hero { padding-bottom:60px; } .habit { gap:8px; padding:12px 6px; } .task-actions { gap:0; } .rename-habit,.remove-habit { font-size:.72rem; padding:7px 4px; } .habit-text { overflow-wrap:anywhere; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation:none!important; } }
   </style>
 </head>
 <body>
   <header class="topbar" aria-label="Site header">
     <div class="topbar-inner">
       <div class="brand"><img class="brand-logo" src="nightly-check-logo.png" alt="Moon and checkmark logo"><span>Nightly Check <span class="brand-subtitle">Accountability</span></span></div>
+      <nav class="nav-actions" aria-label="Main navigation"><button class="quiet-button" id="motionToggle" type="button" aria-pressed="false">Pause motion</button><a href="#check-in">Check in ↗</a></nav>
     </div>
   </header>
-  <main>
+  <section class="hero" aria-label="Welcome to your nightly ritual">
+    <video id="nightVideo" muted loop playsinline preload="none" aria-hidden="true" data-src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260819_212700_3bb9329b-5c50-4257-a09b-ca85cf3654a3.mp4"></video>
+    <div class="stars" id="stars" aria-hidden="true"></div>
+    <div class="hero-content"><p class="eyebrow">A little honesty. Every evening.</p><h1>Close the day<br>with <em>intention.</em></h1><p class="hero-copy">Notice your progress. Learn from today.<br>Make a little room for a better tomorrow.</p><a class="hero-cta" href="#check-in">Begin tonight's check-in ↗</a><p class="hero-foot">YOUR NIGHTLY RITUAL · ABOUT 2 MINUTES</p></div>
+  </section>
+  <main id="check-in">
     <button class="back" id="backButton" hidden type="button">← Back to tonight</button>
     <p class="eyebrow">Nightly accountability</p>
     <h1 id="title">Tonight's check-in</h1>
     <p class="date" id="dateLabel"></p>
+    <div class="week-strip" id="weekStrip" aria-label="Last seven days"></div>
 
     <div class="grid" aria-label="Progress summary">
       <section class="card score-card">
@@ -109,6 +167,7 @@
     </div>
 
     <section class="card section" aria-label="Daily habits" id="habitSection">
+      <div class="task-intro"><p class="eyebrow">Make it your own</p><h2>Add your daily essential tasks and track them</h2><p>Start with a few habits that matter to you. Add, rename, or remove any task, and break bigger goals into subtasks.</p><p id="starterHint" hidden>We’ve loaded five starter habits to help you begin. Change them to fit your day.</p></div>
       <div id="habitList"></div>
       <button class="add-habit" id="showAddHabit" type="button"><span class="add-icon" aria-hidden="true">+</span>Add another habit</button>
       <form class="add-form" id="addHabitForm" hidden><input id="newHabitName" maxlength="45" placeholder="e.g. Read for 20 minutes" aria-label="New habit name"><button type="submit">Add</button></form>
@@ -119,17 +178,30 @@
       <textarea id="reflection" rows="2" maxlength="180" placeholder="What helped, what got in the way, or what will you adjust tomorrow?"></textarea>
       <p class="save-note">Saved automatically on this device.</p>
       <p class="notice" id="notice" aria-live="polite"></p>
+      <label for="tomorrowFocus">One small step for tomorrow</label>
+      <input class="focus-input" id="tomorrowFocus" maxlength="180" placeholder="e.g. Put my running shoes by the door">
     </section>
 
+    <section class="card weekly-review" aria-labelledby="reviewTitle">
+      <p class="eyebrow">Small steps, clearer patterns</p><h2 id="reviewTitle">Your weekly review</h2>
+      <p class="review-copy" id="reviewCoverage"></p>
+      <div class="review-grid" id="reviewGrid" hidden>
+        <div class="review-item"><h3>Most consistent</h3><p id="strongHabit"></p><small id="strongDetail"></small></div>
+        <div class="review-item"><h3>Room to grow</h3><p id="growthHabit"></p><small id="growthDetail"></small></div>
+      </div>
+      <p class="review-focus" id="reviewSuggestion"></p>
+      <p class="review-copy" id="reviewMethod" hidden>Based on your current tasks and recorded check-ins in the last seven days. Partial subtasks count proportionally; unrecorded days are not treated as failures. Changing your task list can change this review.</p>
+    </section>
     <section class="card history">
       <div class="history-head"><h2>Daily history</h2><span class="history-hint">Tap a day to view it</span></div>
       <ul class="history-list" id="historyList"></ul>
     </section>
+    <div class="footer-note"><span>Your progress stays in this browser.<br>Download a backup to keep a copy.</span><button class="quiet-button" id="exportData" type="button">Download backup ↓</button></div>
   </main>
   <script>
     (() => {
       const KEY = 'nightly-accountability-v1';
-      const baseHabits = [
+      let baseHabits = [
         { id:'work', name:'Work completed' },
         { id:'iba', name:'IBA', detail:'2 hours' },
         { id:'business', name:'Business', detail:'1 hour' },
@@ -143,7 +215,15 @@
       const displayDate = key => toDate(key).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
       const shortDate = key => toDate(key).toLocaleDateString(undefined, { month:'short', day:'numeric', year: toDate(key).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
       let data;
-      try { data = JSON.parse(localStorage.getItem(KEY)) || { days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{} }; } catch { data = { days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{} }; }
+      const freshData = () => ({ starterVersion:2, days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{} });
+      try { data = JSON.parse(localStorage.getItem(KEY)) || freshData(); } catch { data = freshData(); }
+      if (data.starterVersion === 2) baseHabits = [
+        { id:'essential', name:'Complete my top priority', detail:'One meaningful task' },
+        { id:'movement', name:'Move my body', detail:'A walk, stretch, or workout' },
+        { id:'learning', name:'Read or learn', detail:'Make time for something new' },
+        { id:'connection', name:'Connect with someone', detail:'A thoughtful message or conversation' },
+        { id:'winddown', name:'Wind down without my phone', detail:'Create a calmer end to the day' }
+      ];
       if (!data.days || typeof data.days !== 'object') data.days = {};
       if (!Array.isArray(data.customHabits)) data.customHabits = [];
       if (!data.subtasks || typeof data.subtasks !== 'object') data.subtasks = {};
@@ -161,6 +241,7 @@
       }, 0);
       const formatScore = value => Number(value.toFixed(2)).toString();
       const persist = () => localStorage.setItem(KEY, JSON.stringify(data));
+      if (data.starterVersion === 2) persist();
       const ensureDay = key => { if (!data.days[key]) data.days[key] = { habits:{}, reflection:'' }; return data.days[key]; };
       const isToday = () => viewing === todayKey();
 
@@ -180,7 +261,27 @@
           return daysAgo >= 0 && daysAgo < 7;
         });
         if (!keys.length) return null;
-        return { average: keys.reduce((sum, key) => sum + score(getDay(key)), 0) / keys.length, count:keys.length };
+        return { average: keys.reduce((sum, key) => sum + score(getDay(key)), 0) / keys.length, count:keys.length, keys };
+      }
+      function renderReview(week) {
+        const tasks = [...baseHabits.filter(h => !data.hiddenBaseHabits.includes(h.id)).map(h => ({...h,name:data.renamedBaseHabits[h.id] || h.name})),...data.customHabits];
+        el('starterHint').hidden = data.starterVersion !== 2 || Object.keys(data.days).length > 0;
+        const ready = Boolean(week && tasks.length);
+        el('reviewGrid').hidden = !ready; el('reviewMethod').hidden = !ready;
+        el('reviewCoverage').textContent = week ? `${week.count} of the last 7 days recorded. ${week.count < 3 ? 'An early snapshot—patterns become clearer with more check-ins.' : 'Notice what is working and choose one small adjustment.'}` : 'Your first check-in will start your weekly review.';
+        if (!ready) { el('reviewSuggestion').textContent = tasks.length ? 'Tonight, check off what you did and write one honest reflection. Progress starts with noticing.' : 'Add a daily essential task above to start building your routine.'; return; }
+        const ratings = tasks.map(task => {
+          const subs = data.subtasks[task.id] || [];
+          const sum = week.keys.reduce((total,key) => { const habits = getDay(key).habits || {}; return total + (subs.length ? subs.filter(s => habits[`${task.id}::${s.id}`]).length / subs.length : Number(Boolean(habits[task.id]))); },0);
+          return {name:task.name,rate:sum/week.count};
+        });
+        const max = Math.max(...ratings.map(r=>r.rate)), min = Math.min(...ratings.map(r=>r.rate));
+        const strongest = ratings.filter(r=>Math.abs(r.rate-max)<1e-9), weakest = ratings.filter(r=>Math.abs(r.rate-min)<1e-9);
+        el('strongHabit').textContent = max === 0 ? 'A fresh starting point' : strongest.map(r=>r.name).join(' · ');
+        el('strongDetail').textContent = `${Math.round(max*100)}% average completion on recorded days${strongest.length>1 && max>0 ? ' · tied' : ''}`;
+        el('growthHabit').textContent = min === 1 ? 'Keep your rhythm' : weakest.map(r=>r.name).join(' · ');
+        el('growthDetail').textContent = min === 1 ? 'Every current task is complete on every recorded day.' : `${Math.round(min*100)}% average completion on recorded days${weakest.length>1 ? ' · tied' : ''}`;
+        el('reviewSuggestion').textContent = min === 1 ? 'Next week: repeat what worked. A sustainable routine does not need more tasks.' : max === 0 ? 'Next week: choose one task and make its first step small enough to do on a busy day.' : `Next week: make “${weakest[0].name}” easier to start. Add one small subtask and write when you will do it in tomorrow’s focus.`;
       }
       function render() {
         const day = getDay(viewing), currentScore = score(day), total = allHabits().length, weeklyData = weekly();
@@ -205,10 +306,22 @@
           }
         });
         el('reflection').value = day.reflection || '';
+        el('tomorrowFocus').value = day.tomorrowFocus || '';
+        const strip = el('weekStrip'); strip.replaceChildren();
+        for (let offset = 6; offset >= 0; offset--) {
+          const date = new Date(); date.setHours(12,0,0,0); date.setDate(date.getDate()-offset);
+          const key = dateKey(date), button = document.createElement('button'); button.type='button'; button.className='week-day';
+          button.textContent=date.toLocaleDateString(undefined,{weekday:'short'});
+          const amount=document.createElement('strong'); amount.textContent=data.days[key] ? formatScore(score(getDay(key))) : '—'; button.append(amount);
+          button.setAttribute('aria-label',`${displayDate(key)}: ${data.days[key] ? formatScore(score(getDay(key)))+' of '+total : 'No check-in'}`);
+          if(key===viewing) button.setAttribute('aria-current','date');
+          button.addEventListener('click',()=>{viewing=key;render();}); strip.append(button);
+        }
         el('streak').textContent = `${streak()} ${streak() === 1 ? 'day' : 'days'}`;
         el('streakDetail').textContent = `days at ${total} / ${total}`;
         el('weekly').textContent = weeklyData && total ? `${formatScore(weeklyData.average)} / ${total}` : '—';
         el('weeklyDetail').textContent = weeklyData && total ? `last 7 days · ${weeklyData.count} ${weeklyData.count === 1 ? 'check-in' : 'check-ins'}` : 'no check-ins yet';
+        renderReview(weeklyData);
         renderHistory();
       }
       function renderHabits() {
@@ -222,7 +335,7 @@
           const subtaskList = group.querySelector('.subtasks');
           (data.subtasks[task.id] || []).forEach(subtask => {
             const subtaskLabel = document.createElement('label'); subtaskLabel.className = 'subtask';
-            subtaskLabel.innerHTML = `<input type="checkbox" data-habit="${task.id}::${subtask.id}"><span>${escapeHtml(subtask.name)}</span>`;
+            subtaskLabel.innerHTML = `<input type="checkbox" data-habit="${task.id}::${subtask.id}"><span>${escapeHtml(subtask.name)}</span><span class="points">${(1 / data.subtasks[task.id].length).toFixed(2)} pt</span>`;
             subtaskList.append(subtaskLabel);
           });
           group.querySelector('.remove-habit').addEventListener('click', event => {
@@ -263,7 +376,7 @@
           const day = getDay(key), item = document.createElement('li'), button = document.createElement('button');
           button.type = 'button'; button.className = 'history-row'; button.setAttribute('aria-label', `Open check-in for ${displayDate(key)}`);
           button.innerHTML = `<span><span class="history-date">${shortDate(key)}</span>${day.reflection ? `<span class="history-reflection">${escapeHtml(day.reflection)}</span>` : ''}</span><span class="history-score">${formatScore(score(day))} / ${allHabits().length}</span><span class="arrow" aria-hidden="true">›</span>`;
-          button.addEventListener('click', () => { viewing = key; el('notice').textContent = ''; render(); window.scrollTo({ top:0, behavior:'smooth' }); });
+          button.addEventListener('click', () => { viewing = key; el('notice').textContent = ''; render(); el('check-in').scrollIntoView(); });
           item.append(button); list.append(item);
         });
       }
@@ -277,6 +390,16 @@
         changed();
       });
       el('reflection').addEventListener('input', event => { ensureDay(viewing).reflection = event.target.value; changed(); });
+      el('tomorrowFocus').addEventListener('input', event => { ensureDay(viewing).tomorrowFocus = event.target.value; persist(); el('notice').textContent='Saved.'; });
+      el('exportData').addEventListener('click',()=>{ const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); const a=document.createElement('a'); a.href=url; a.download=`nightly-check-${todayKey()}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); });
+      const video=el('nightVideo'), reduced=matchMedia('(prefers-reduced-motion: reduce)');
+      let paused = reduced.matches || localStorage.getItem('nightly-motion-paused')==='true';
+      function updateMotion() { document.body.classList.toggle('motion-off',paused); el('motionToggle').textContent=paused?'Play motion':'Pause motion'; el('motionToggle').setAttribute('aria-pressed',String(paused)); if(paused) video.pause(); else { if(!video.src) video.src=video.dataset.src; video.play().catch(()=>{}); } }
+      el('motionToggle').addEventListener('click',()=>{paused=!paused;localStorage.setItem('nightly-motion-paused',String(paused));updateMotion();});
+      reduced.addEventListener('change',event=>{paused=event.matches;updateMotion();});
+      for(let i=0;i<65;i++){const star=document.createElement('i');star.className='star';star.style.cssText=`left:${(i*37.71)%100}%;top:${(i*19.37)%100}%;animation-delay:-${i%7}s`;el('stars').append(star);}
+      window.addEventListener('scroll',()=>document.querySelector('.topbar').classList.toggle('scrolled',window.scrollY>40),{passive:true});
+      updateMotion();
       el('backButton').addEventListener('click', () => { viewing = todayKey(); el('notice').textContent = ''; render(); });
       el('showAddHabit').addEventListener('click', () => { el('addHabitForm').hidden = false; el('newHabitName').focus(); });
       el('addHabitForm').addEventListener('submit', event => { event.preventDefault(); const name = el('newHabitName').value.trim(); if (!name) return; data.customHabits.push({ id:`custom-${Date.now()}`, name }); el('newHabitName').value = ''; el('addHabitForm').hidden = true; persist(); render(); el('notice').textContent = 'New habit added.'; });
