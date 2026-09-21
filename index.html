@@ -92,6 +92,25 @@
     .brand-subtitle { display:none; }
     .nav-actions { display:flex; align-items:center; gap:8px; }
     .nav-actions a,.quiet-button { color:var(--text); background:rgba(8,12,24,.5); border:1px solid #ffffff30; padding:9px 15px; border-radius:30px; font:inherit; font-size:.8rem; text-decoration:none; cursor:pointer; }
+    .sync-status { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:.76rem; white-space:nowrap; }
+    .sync-dot { width:7px; height:7px; border-radius:50%; background:#7986ac; box-shadow:0 0 0 3px #7986ac22; }
+    .sync-status[data-state="synced"] .sync-dot { background:var(--good); box-shadow:0 0 0 3px #58d6a522; }
+    .sync-status[data-state="saving"] .sync-dot { background:#f4c56d; box-shadow:0 0 0 3px #f4c56d22; }
+    .sync-status[data-state="error"] .sync-dot { background:#ff8585; box-shadow:0 0 0 3px #ff858522; }
+    .auth-dialog { width:min(100% - 28px,430px); padding:0; border:1px solid #ffffff22; border-radius:22px; background:#11182b; color:var(--text); box-shadow:0 30px 90px #000b; }
+    .auth-dialog::backdrop { background:#050812c7; backdrop-filter:blur(8px); }
+    .auth-inner { padding:24px; }
+    .auth-head { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:20px; }
+    .auth-head h2 { font-size:1.45rem; }
+    .icon-button { border:0; background:transparent; color:var(--muted); font-size:1.5rem; cursor:pointer; }
+    .auth-form { display:grid; gap:11px; }
+    .auth-form label { margin:0; color:var(--muted); font-size:.8rem; }
+    .auth-form input { width:100%; margin-top:5px; padding:12px 13px; border:1px solid var(--line); border-radius:11px; background:#0a1020; color:var(--text); font:inherit; }
+    .auth-buttons { display:flex; gap:8px; margin-top:5px; }
+    .primary-button { flex:1; border:0; border-radius:11px; padding:12px 14px; background:#eeeaff; color:#171226; font:inherit; font-weight:750; cursor:pointer; }
+    .auth-message { min-height:1.25em; color:var(--muted); font-size:.82rem; margin:13px 0 0; }
+    .signed-in-box { padding:15px; border:1px solid #ffffff16; border-radius:14px; background:#ffffff05; }
+    .signed-in-box strong { display:block; margin-bottom:4px; }
     .hero { position:relative; min-height:100svh; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; padding:130px 24px 80px; background:#080c18; }
     .hero video { position:absolute; width:100%; height:100%; inset:0; object-fit:cover; opacity:.6; animation:reveal-scene 1.4s cubic-bezier(.16,1,.3,1) both; }
     .hero::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 15%,rgba(8,12,24,.4) 50%,#080c18); pointer-events:none; }
@@ -115,6 +134,17 @@
     .focus-input { width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#0d1326; color:var(--text); font:inherit; margin-bottom:8px; }
     .points { color:var(--accent-2); font-size:.73rem; white-space:nowrap; margin-left:auto; }
     .footer-note { display:flex; justify-content:space-between; align-items:center; gap:14px; color:var(--muted); font-size:.78rem; margin:24px 0; }
+    .transfer { padding:22px; margin-bottom:14px; }
+    .transfer-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; margin-bottom:18px; }
+    .transfer-copy { color:var(--muted); margin:7px 0 0; font-size:.9rem; max-width:470px; }
+    .transfer-steps { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .transfer-step { border:1px solid #ffffff14; background:#ffffff04; border-radius:14px; padding:15px; }
+    .transfer-step strong { display:block; font-size:.87rem; margin-bottom:5px; }
+    .transfer-step span { color:var(--muted); font-size:.79rem; }
+    .transfer-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .transfer-actions .quiet-button { display:inline-flex; align-items:center; justify-content:center; }
+    .file-picker { position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+    .transfer-status { min-height:1.2em; color:var(--good); font-size:.82rem; margin:11px 0 0; }
     .task-intro { padding:14px 13px 18px; }
     .task-intro h2 { font-size:1.3rem; }
     .task-intro p,.review-copy { color:var(--muted); font-size:.9rem; margin:8px 0 0; }
@@ -125,21 +155,22 @@
     .review-item p { margin:0; overflow-wrap:anywhere; }
     .review-item small { display:block; color:var(--muted); margin-top:8px; }
     .review-focus { border-left:2px solid var(--good); padding-left:14px; color:var(--text); font-size:.9rem; }
-    @media(max-width:520px) { .review-grid { grid-template-columns:1fr; } }
+    @media(max-width:520px) { .review-grid,.transfer-steps { grid-template-columns:1fr; } .transfer-head { display:block; } }
     a:focus-visible,input:focus-visible { outline:3px solid var(--accent-2); outline-offset:4px; }
     @keyframes twinkle { from { opacity:.15; } to { opacity:.85; } }
     @keyframes reveal-scene { from { opacity:0; transform:scale(1.05); } to { opacity:.6; transform:scale(1); } }
     @keyframes rise-in { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
     body.motion-off *,body.motion-off *::before,body.motion-off *::after { animation:none!important; scroll-behavior:auto; }
-    @media(max-width:520px) { .brand { font-size:.9rem; } .brand-logo { width:30px; height:30px; } .nav-actions a,.quiet-button { padding:8px 10px; font-size:.72rem; } .hero { padding-bottom:60px; } .habit { gap:8px; padding:12px 6px; } .task-actions { gap:0; } .rename-habit,.remove-habit { font-size:.72rem; padding:7px 4px; } .habit-text { overflow-wrap:anywhere; } }
+    @media(max-width:700px) { .sync-status { display:none; } .nav-actions a { display:none; } }
+    @media(max-width:520px) { .brand { font-size:.82rem; } .brand-logo { width:30px; height:30px; } .nav-actions a,.quiet-button { padding:8px 10px; font-size:.72rem; } .hero { padding-bottom:60px; } .habit { gap:8px; padding:12px 6px; } .task-actions { gap:0; } .rename-habit,.remove-habit { font-size:.72rem; padding:7px 4px; } .habit-text { overflow-wrap:anywhere; } }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation:none!important; } }
   </style>
 </head>
 <body>
   <header class="topbar" aria-label="Site header">
     <div class="topbar-inner">
-      <div class="brand"><img class="brand-logo" src="nightly-check-logo.png" alt="Moon and checkmark logo"><span>Nightly Check <span class="brand-subtitle">Accountability</span></span></div>
-      <nav class="nav-actions" aria-label="Main navigation"><button class="quiet-button" id="motionToggle" type="button" aria-pressed="false">Pause motion</button><a href="#check-in">Check in ↗</a></nav>
+      <div class="brand"><img class="brand-logo" src="nightly-check-logo.png" alt="Moon and checkmark logo"><span>Nightly Accountability</span></div>
+      <nav class="nav-actions" aria-label="Main navigation"><span class="sync-status" id="syncStatus" data-state="local"><i class="sync-dot"></i><span id="syncStatusText">Saved on this device</span></span><button class="quiet-button" id="accountButton" type="button">Sign in</button><button class="quiet-button" id="motionToggle" type="button" aria-pressed="false">Pause motion</button><a href="#check-in">Check in ↗</a></nav>
     </div>
   </header>
   <section class="hero" aria-label="Welcome to your nightly ritual">
@@ -176,7 +207,7 @@
     <section class="card reflection">
       <label for="reflection">One-line reflection</label>
       <textarea id="reflection" rows="2" maxlength="180" placeholder="What helped, what got in the way, or what will you adjust tomorrow?"></textarea>
-      <p class="save-note">Saved automatically on this device.</p>
+      <p class="save-note" id="saveNote">Saved automatically on this device. Sign in to sync everywhere.</p>
       <p class="notice" id="notice" aria-live="polite"></p>
       <label for="tomorrowFocus">One small step for tomorrow</label>
       <input class="focus-input" id="tomorrowFocus" maxlength="180" placeholder="e.g. Put my running shoes by the door">
@@ -196,41 +227,82 @@
       <div class="history-head"><h2>Daily history</h2><span class="history-hint">Tap a day to view it</span></div>
       <ul class="history-list" id="historyList"></ul>
     </section>
-    <div class="footer-note"><span>Your progress stays in this browser.<br>Download a backup to keep a copy.</span><button class="quiet-button" id="exportData" type="button">Download backup ↓</button></div>
+    <section class="card transfer" aria-labelledby="transferTitle">
+      <div class="transfer-head"><div><p class="eyebrow">Keep a copy</p><h2 id="transferTitle">Back up or restore your tracker</h2><p class="transfer-copy">Signed-in users sync automatically. You can also keep a private backup file or restore one from another browser.</p></div></div>
+      <div class="transfer-steps">
+        <div class="transfer-step"><strong>1 · On this device</strong><span>Download a backup containing your tasks, subtasks, history, reflections, and progress.</span></div>
+        <div class="transfer-step"><strong>2 · On the other device</strong><span>Open this site and choose that backup file to restore your tracker.</span></div>
+      </div>
+      <div class="transfer-actions"><button class="quiet-button" id="exportData" type="button">Download my data ↓</button><label class="quiet-button" for="importData">Import a backup ↑</label><input class="file-picker" id="importData" type="file" accept="application/json,.json"></div>
+      <p class="transfer-status" id="transferStatus" aria-live="polite"></p>
+    </section>
+    <div class="footer-note"><span>Local saving works offline. Sign in on each device with the same account for automatic syncing.</span></div>
   </main>
+  <dialog class="auth-dialog" id="authDialog">
+    <div class="auth-inner">
+      <div class="auth-head"><div><p class="eyebrow">Private cloud sync</p><h2 id="authTitle">Use your tracker everywhere</h2></div><button class="icon-button" id="closeAuth" type="button" aria-label="Close">×</button></div>
+      <form class="auth-form" id="authForm">
+        <label>Email<input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters"></label>
+        <div class="auth-buttons"><button class="primary-button" type="submit">Sign in</button><button class="quiet-button" id="signUpButton" type="button">Create account</button></div>
+      </form>
+      <div class="signed-in-box" id="signedInBox" hidden><strong>Signed in</strong><span id="signedInEmail"></span><div class="transfer-actions"><button class="quiet-button" id="syncNowButton" type="button">Sync now</button><button class="quiet-button" id="signOutButton" type="button">Sign out</button></div></div>
+      <p class="auth-message" id="authMessage" aria-live="polite"></p>
+    </div>
+  </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (() => {
       const KEY = 'nightly-accountability-v1';
-      let baseHabits = [
+      const SUPABASE_URL = 'https://szjeoeelxlmzbcxjxpyu.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_6OLg6bi__WUQysE4pvxc7A_uaO_g3zv';
+      const legacyHabits = [
         { id:'work', name:'Work completed' },
         { id:'iba', name:'IBA', detail:'2 hours' },
         { id:'business', name:'Business', detail:'1 hour' },
         { id:'workout', name:'Workout / Running' },
         { id:'phone', name:'Phone controlled' }
       ];
-      const el = id => document.getElementById(id);
-      const dateKey = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      const todayKey = () => dateKey(new Date());
-      const toDate = key => new Date(key + 'T12:00:00');
-      const displayDate = key => toDate(key).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-      const shortDate = key => toDate(key).toLocaleDateString(undefined, { month:'short', day:'numeric', year: toDate(key).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
-      let data;
-      const freshData = () => ({ starterVersion:2, days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{} });
-      try { data = JSON.parse(localStorage.getItem(KEY)) || freshData(); } catch { data = freshData(); }
-      if (data.starterVersion === 2) baseHabits = [
+      const starterHabits = [
         { id:'essential', name:'Complete my top priority', detail:'One meaningful task' },
         { id:'movement', name:'Move my body', detail:'A walk, stretch, or workout' },
         { id:'learning', name:'Read or learn', detail:'Make time for something new' },
         { id:'connection', name:'Connect with someone', detail:'A thoughtful message or conversation' },
         { id:'winddown', name:'Wind down without my phone', detail:'Create a calmer end to the day' }
       ];
-      if (!data.days || typeof data.days !== 'object') data.days = {};
-      if (!Array.isArray(data.customHabits)) data.customHabits = [];
-      if (!data.subtasks || typeof data.subtasks !== 'object') data.subtasks = {};
-      if (!Array.isArray(data.hiddenBaseHabits)) data.hiddenBaseHabits = [];
-      if (!data.renamedBaseHabits || typeof data.renamedBaseHabits !== 'object') data.renamedBaseHabits = {};
+      let baseHabits = legacyHabits;
+      const el = id => document.getElementById(id);
+      const dateKey = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const todayKey = () => dateKey(new Date());
+      const toDate = key => new Date(key + 'T12:00:00');
+      const displayDate = key => toDate(key).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+      const shortDate = key => toDate(key).toLocaleDateString(undefined, { month:'short', day:'numeric', year: toDate(key).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
+      const freshData = () => ({ starterVersion:2, days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{}, _sync:{ fields:{}, structure:'' } });
+      const clone = value => JSON.parse(JSON.stringify(value));
+      function normalizeData(candidate) {
+        const value = candidate && typeof candidate === 'object' ? candidate : freshData();
+        if (!value.days || typeof value.days !== 'object') value.days = {};
+        if (!Array.isArray(value.customHabits)) value.customHabits = [];
+        if (!value.subtasks || typeof value.subtasks !== 'object') value.subtasks = {};
+        if (!Array.isArray(value.hiddenBaseHabits)) value.hiddenBaseHabits = [];
+        if (!value.renamedBaseHabits || typeof value.renamedBaseHabits !== 'object') value.renamedBaseHabits = {};
+        if (!value._sync || typeof value._sync !== 'object') value._sync = { fields:{}, structure:'' };
+        if (!value._sync.fields || typeof value._sync.fields !== 'object') value._sync.fields = {};
+        if (typeof value._sync.structure !== 'string') value._sync.structure = '';
+        return value;
+      }
+      let data;
+      try { data = normalizeData(JSON.parse(localStorage.getItem(KEY)) || freshData()); } catch { data = freshData(); }
+      const applyHabitVersion = () => { baseHabits = data.starterVersion === 2 ? starterHabits : legacyHabits; };
+      applyHabitVersion();
       let viewing = todayKey();
       let saveTimer;
+      let cloudTimer;
+      let activeUser = null;
+      let syncChannel = null;
+      let syncInFlight = false;
+      let applyingRemote = false;
+      const cloudClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } }) : null;
       const getDay = key => data.days[key] || { habits:{}, reflection:'' };
       const allHabits = () => [...baseHabits.filter(habit => !data.hiddenBaseHabits.includes(habit.id)).map(habit => habit.id), ...data.customHabits.map(habit => habit.id)];
       const score = day => allHabits().reduce((total, habit) => {
@@ -240,7 +312,69 @@
         return total + (completed / subtasks.length);
       }, 0);
       const formatScore = value => Number(value.toFixed(2)).toString();
-      const persist = () => localStorage.setItem(KEY, JSON.stringify(data));
+      const hasMeaningfulData = value => Object.keys(value.days || {}).length > 0 || (value.customHabits || []).length > 0 || (value.hiddenBaseHabits || []).length > 0 || Object.keys(value.renamedBaseHabits || {}).length > 0 || Object.keys(value.subtasks || {}).length > 0;
+      const stamp = () => new Date().toISOString();
+      const markField = path => { data._sync.fields[path] = stamp(); };
+      const markStructure = () => { data._sync.structure = stamp(); };
+      function stampExisting(value) {
+        value = normalizeData(value);
+        if (!hasMeaningfulData(value) || value._sync.structure) return value;
+        const now = stamp(); value._sync.structure = now;
+        Object.entries(value.days).forEach(([date, day]) => {
+          Object.keys(day.habits || {}).forEach(habit => { value._sync.fields[`habit|${date}|${habit}`] = now; });
+          if (day.reflection) value._sync.fields[`reflection|${date}`] = now;
+          if (day.tomorrowFocus) value._sync.fields[`focus|${date}`] = now;
+        });
+        return value;
+      }
+      data = stampExisting(data);
+      function laterValue(localValue, remoteValue, localTime, remoteTime) {
+        if (localTime && remoteTime) return localTime >= remoteTime ? localValue : remoteValue;
+        if (localTime) return localValue;
+        if (remoteTime) return remoteValue;
+        return localValue !== undefined ? localValue : remoteValue;
+      }
+      function mergeStates(localState, remoteState) {
+        const local = normalizeData(clone(localState || freshData())), remote = normalizeData(clone(remoteState || freshData()));
+        const localStructure = local._sync.structure || '', remoteStructure = remote._sync.structure || '';
+        let structureSource;
+        if (localStructure || remoteStructure) structureSource = localStructure >= remoteStructure ? local : remote;
+        else structureSource = hasMeaningfulData(local) ? local : remote;
+        const merged = normalizeData({
+          starterVersion:structureSource.starterVersion,
+          customHabits:clone(structureSource.customHabits),
+          subtasks:clone(structureSource.subtasks),
+          hiddenBaseHabits:clone(structureSource.hiddenBaseHabits),
+          renamedBaseHabits:clone(structureSource.renamedBaseHabits),
+          days:{},
+          _sync:{ structure:localStructure >= remoteStructure ? localStructure : remoteStructure, fields:{} }
+        });
+        const fields = {...remote._sync.fields,...local._sync.fields};
+        Object.keys(remote._sync.fields).forEach(path => { if ((remote._sync.fields[path] || '') > (local._sync.fields[path] || '')) fields[path] = remote._sync.fields[path]; });
+        merged._sync.fields = fields;
+        const dates = new Set([...Object.keys(local.days),...Object.keys(remote.days)]);
+        dates.forEach(date => {
+          const localDay = local.days[date] || {habits:{}}, remoteDay = remote.days[date] || {habits:{}}, day = {habits:{}};
+          const habits = new Set([...Object.keys(localDay.habits || {}),...Object.keys(remoteDay.habits || {})]);
+          habits.forEach(habit => {
+            const path = `habit|${date}|${habit}`;
+            const value = laterValue(localDay.habits && localDay.habits[habit], remoteDay.habits && remoteDay.habits[habit], local._sync.fields[path], remote._sync.fields[path]);
+            if (value !== undefined) day.habits[habit] = value;
+          });
+          const reflectionPath = `reflection|${date}`, focusPath = `focus|${date}`;
+          day.reflection = laterValue(localDay.reflection, remoteDay.reflection, local._sync.fields[reflectionPath], remote._sync.fields[reflectionPath]) || '';
+          day.tomorrowFocus = laterValue(localDay.tomorrowFocus, remoteDay.tomorrowFocus, local._sync.fields[focusPath], remote._sync.fields[focusPath]) || '';
+          merged.days[date] = day;
+        });
+        return merged;
+      }
+      function setSyncStatus(state, message) { el('syncStatus').dataset.state = state; el('syncStatusText').textContent = message; }
+      const persistLocal = () => localStorage.setItem(KEY, JSON.stringify(data));
+      function scheduleCloudSync() {
+        if (!activeUser || applyingRemote) return;
+        setSyncStatus('saving','Saving…'); clearTimeout(cloudTimer); cloudTimer = setTimeout(syncToCloud,500);
+      }
+      const persist = () => { persistLocal(); scheduleCloudSync(); };
       if (data.starterVersion === 2) persist();
       const ensureDay = key => { if (!data.days[key]) data.days[key] = { habits:{}, reflection:'' }; return data.days[key]; };
       const isToday = () => viewing === todayKey();
@@ -342,7 +476,7 @@
             event.preventDefault();
             if (isBaseTask) data.hiddenBaseHabits.push(task.id);
             else data.customHabits = data.customHabits.filter(item => item.id !== task.id);
-            delete data.subtasks[task.id]; persist(); render();
+            delete data.subtasks[task.id]; markStructure(); persist(); render();
           });
           group.querySelector('.rename-habit').addEventListener('click', event => { event.preventDefault(); showRenameForm(group, task, isBaseTask); });
           group.querySelector('.add-subtask').addEventListener('click', () => showSubtaskForm(group, task.id));
@@ -353,7 +487,7 @@
         if (group.querySelector('.subtask-form')) return group.querySelector('.subtask-form input').focus();
         const form = document.createElement('form'); form.className = 'add-form subtask-form';
         form.innerHTML = '<input maxlength="45" placeholder="New subtask" aria-label="New subtask name"><button type="submit">Add</button>';
-        form.addEventListener('submit', event => { event.preventDefault(); const input = form.querySelector('input'); const name = input.value.trim(); if (!name) return; if (!data.subtasks[taskId]) data.subtasks[taskId] = []; data.subtasks[taskId].push({ id:`sub-${Date.now()}`, name }); persist(); render(); el('notice').textContent = 'Subtask added.'; });
+        form.addEventListener('submit', event => { event.preventDefault(); const input = form.querySelector('input'); const name = input.value.trim(); if (!name) return; if (!data.subtasks[taskId]) data.subtasks[taskId] = []; data.subtasks[taskId].push({ id:`sub-${Date.now()}`, name }); markStructure(); persist(); render(); el('notice').textContent = 'Subtask added.'; });
         group.append(form); form.querySelector('input').focus();
       }
       function showRenameForm(group, task, isBaseTask) {
@@ -364,7 +498,7 @@
           event.preventDefault(); const input = form.querySelector('input'); const name = input.value.trim(); if (!name) return;
           if (isBaseTask) data.renamedBaseHabits[task.id] = name;
           else { const customTask = data.customHabits.find(item => item.id === task.id); if (customTask) customTask.name = name; }
-          persist(); render(); el('notice').textContent = 'Task renamed.';
+          markStructure(); persist(); render(); el('notice').textContent = 'Task renamed.';
         });
         group.append(form); form.querySelector('input').focus(); form.querySelector('input').select();
       }
@@ -380,18 +514,99 @@
           item.append(button); list.append(item);
         });
       }
+      function updateAuthUI() {
+        const signedIn = Boolean(activeUser);
+        el('accountButton').textContent = signedIn ? 'Account' : 'Sign in';
+        el('authForm').hidden = signedIn; el('signedInBox').hidden = !signedIn;
+        el('signedInEmail').textContent = signedIn ? activeUser.email : '';
+        el('saveNote').textContent = signedIn ? 'Saved locally and synchronized with your account.' : 'Saved automatically on this device. Sign in to sync everywhere.';
+        if (!signedIn) setSyncStatus('local','Saved on this device');
+      }
+      async function syncToCloud() {
+        if (!cloudClient || !activeUser) return;
+        if (!navigator.onLine) { setSyncStatus('error','Saved offline'); return; }
+        if (syncInFlight) { clearTimeout(cloudTimer); cloudTimer=setTimeout(syncToCloud,650); return; }
+        syncInFlight=true; setSyncStatus('saving','Syncing…');
+        try {
+          const { data:row, error:readError } = await cloudClient.from('tracker_state').select('data,updated_at').eq('user_id',activeUser.id).maybeSingle();
+          if (readError) throw readError;
+          const merged = row && row.data ? mergeStates(data,row.data) : normalizeData(clone(data));
+          const changedLocally = JSON.stringify(merged) !== JSON.stringify(data);
+          if (changedLocally) { applyingRemote=true; data=merged; applyHabitVersion(); persistLocal(); render(); applyingRemote=false; }
+          const { error:writeError } = await cloudClient.from('tracker_state').upsert({ user_id:activeUser.id, data:merged, updated_at:new Date().toISOString() },{ onConflict:'user_id' });
+          if (writeError) throw writeError;
+          setSyncStatus('synced','Synced');
+        } catch (error) {
+          console.error('Cloud sync failed',error); setSyncStatus('error',navigator.onLine ? 'Sync needs attention' : 'Saved offline');
+          el('authMessage').textContent = error.message || 'Could not sync. Your changes are still saved on this device.';
+        } finally { syncInFlight=false; }
+      }
+      function subscribeToCloud() {
+        if (!cloudClient || !activeUser) return;
+        if (syncChannel) cloudClient.removeChannel(syncChannel);
+        syncChannel = cloudClient.channel(`tracker-${activeUser.id}`)
+          .on('postgres_changes',{ event:'*', schema:'public', table:'tracker_state', filter:`user_id=eq.${activeUser.id}` },payload => {
+            if (!payload.new || !payload.new.data) return;
+            const merged=mergeStates(data,payload.new.data), localChanged=JSON.stringify(merged)!==JSON.stringify(data), cloudChanged=JSON.stringify(merged)!==JSON.stringify(payload.new.data);
+            if (localChanged) { applyingRemote=true; data=merged; applyHabitVersion(); persistLocal(); render(); applyingRemote=false; }
+            if (cloudChanged) scheduleCloudSync(); else setSyncStatus('synced','Synced');
+          }).subscribe(status => {
+            if (status === 'SUBSCRIBED') setSyncStatus('synced','Synced');
+            else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSyncStatus('error','Saved offline');
+          });
+      }
+      async function handleSession(session) {
+        const nextUser=session && session.user ? session.user : null;
+        if ((nextUser && activeUser && nextUser.id===activeUser.id) || (!nextUser && !activeUser)) { updateAuthUI(); return; }
+        if (syncChannel && cloudClient) { await cloudClient.removeChannel(syncChannel); syncChannel=null; }
+        activeUser=nextUser; updateAuthUI();
+        if (!activeUser) { el('authMessage').textContent='Signed out. Changes will continue saving on this device.'; return; }
+        data=stampExisting(data); persistLocal();
+        el('authMessage').textContent='Connecting your saved tracker…';
+        await syncToCloud(); subscribeToCloud();
+        el('authMessage').textContent='Your tracker is connected. Sign in with this account on your other devices.';
+      }
       function escapeHtml(value) { const node = document.createElement('div'); node.textContent = value; return node.innerHTML; }
       function changed() { persist(); render(); el('notice').textContent = 'Saved.'; clearTimeout(saveTimer); saveTimer = setTimeout(() => { el('notice').textContent = ''; }, 1300); }
       document.addEventListener('change', event => {
         if (!event.target.matches('[data-habit]')) return;
         const day = ensureDay(viewing), habit = event.target.dataset.habit, subtasks = data.subtasks[habit] || [];
-        if (subtasks.length) subtasks.forEach(subtask => { day.habits[`${habit}::${subtask.id}`] = event.target.checked; });
-        else day.habits[habit] = event.target.checked;
+        if (subtasks.length) subtasks.forEach(subtask => { const key=`${habit}::${subtask.id}`; day.habits[key] = event.target.checked; markField(`habit|${viewing}|${key}`); });
+        else { day.habits[habit] = event.target.checked; markField(`habit|${viewing}|${habit}`); }
         changed();
       });
-      el('reflection').addEventListener('input', event => { ensureDay(viewing).reflection = event.target.value; changed(); });
-      el('tomorrowFocus').addEventListener('input', event => { ensureDay(viewing).tomorrowFocus = event.target.value; persist(); el('notice').textContent='Saved.'; });
-      el('exportData').addEventListener('click',()=>{ const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); const a=document.createElement('a'); a.href=url; a.download=`nightly-check-${todayKey()}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); });
+      el('reflection').addEventListener('input', event => { ensureDay(viewing).reflection = event.target.value; markField(`reflection|${viewing}`); changed(); });
+      el('tomorrowFocus').addEventListener('input', event => { ensureDay(viewing).tomorrowFocus = event.target.value; markField(`focus|${viewing}`); persist(); el('notice').textContent='Saved.'; });
+      el('exportData').addEventListener('click',()=>{
+        const backup = { app:'Nightly Accountability', version:2, exportedAt:new Date().toISOString(), data };
+        const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
+        const a=document.createElement('a'); a.href=url; a.download=`nightly-accountability-backup-${todayKey()}.json`; a.click();
+        el('transferStatus').textContent='Backup downloaded. Move this file to your other device.';
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+      });
+      el('importData').addEventListener('change', async event => {
+        const file = event.target.files && event.target.files[0]; if (!file) return;
+        try {
+          const parsed = JSON.parse(await file.text()), imported = parsed && parsed.app === 'Nightly Accountability' ? parsed.data : parsed;
+          if (!imported || typeof imported !== 'object' || !imported.days || typeof imported.days !== 'object' || !Array.isArray(imported.customHabits)) throw new Error('invalid');
+          const approved = confirm('Restore this backup? It will replace the tracker data currently saved in this browser.');
+          if (!approved) { event.target.value=''; return; }
+          data = normalizeData({
+            starterVersion: imported.starterVersion,
+            days: imported.days || {},
+            customHabits: Array.isArray(imported.customHabits) ? imported.customHabits : [],
+            subtasks: imported.subtasks && typeof imported.subtasks === 'object' ? imported.subtasks : {},
+            hiddenBaseHabits: Array.isArray(imported.hiddenBaseHabits) ? imported.hiddenBaseHabits : [],
+            renamedBaseHabits: imported.renamedBaseHabits && typeof imported.renamedBaseHabits === 'object' ? imported.renamedBaseHabits : {},
+            _sync:{fields:{},structure:''}
+          });
+          const importedAt=stamp(); data._sync.structure=importedAt;
+          Object.entries(data.days).forEach(([date,day])=>{ Object.keys(day.habits||{}).forEach(habit=>data._sync.fields[`habit|${date}|${habit}`]=importedAt); if(day.reflection!==undefined)data._sync.fields[`reflection|${date}`]=importedAt; if(day.tomorrowFocus!==undefined)data._sync.fields[`focus|${date}`]=importedAt; });
+          applyHabitVersion();
+          viewing=todayKey(); persist(); render(); el('transferStatus').textContent='Backup restored. Your habits and history are now available on this device.';
+        } catch { el('transferStatus').textContent='That file is not a valid Nightly Accountability backup.'; }
+        event.target.value='';
+      });
       const video=el('nightVideo'), reduced=matchMedia('(prefers-reduced-motion: reduce)');
       let paused = reduced.matches || localStorage.getItem('nightly-motion-paused')==='true';
       function updateMotion() { document.body.classList.toggle('motion-off',paused); el('motionToggle').textContent=paused?'Play motion':'Pause motion'; el('motionToggle').setAttribute('aria-pressed',String(paused)); if(paused) video.pause(); else { if(!video.src) video.src=video.dataset.src; video.play().catch(()=>{}); } }
@@ -400,9 +615,38 @@
       for(let i=0;i<65;i++){const star=document.createElement('i');star.className='star';star.style.cssText=`left:${(i*37.71)%100}%;top:${(i*19.37)%100}%;animation-delay:-${i%7}s`;el('stars').append(star);}
       window.addEventListener('scroll',()=>document.querySelector('.topbar').classList.toggle('scrolled',window.scrollY>40),{passive:true});
       updateMotion();
+      el('accountButton').addEventListener('click',()=>{ el('authMessage').textContent=activeUser ? 'Your account keeps this tracker synchronized across devices.' : 'Use the same email and password on every device.'; if(!el('authDialog').open) el('authDialog').showModal(); });
+      el('closeAuth').addEventListener('click',()=>el('authDialog').close());
+      el('authDialog').addEventListener('click',event=>{ if(event.target===el('authDialog')) el('authDialog').close(); });
+      el('authForm').addEventListener('submit',async event=>{
+        event.preventDefault(); if(!cloudClient) return;
+        const email=el('authEmail').value.trim(), password=el('authPassword').value;
+        el('authMessage').textContent='Signing in…';
+        const { error }=await cloudClient.auth.signInWithPassword({email,password});
+        el('authMessage').textContent=error ? error.message : 'Signed in. Connecting your tracker…';
+      });
+      el('signUpButton').addEventListener('click',async()=>{
+        if(!cloudClient) return;
+        const email=el('authEmail').value.trim(), password=el('authPassword').value;
+        if(!email || password.length<6) { el('authMessage').textContent='Enter a valid email and a password with at least 6 characters.'; return; }
+        el('authMessage').textContent='Creating your account…';
+        const { data:signUpData, error }=await cloudClient.auth.signUp({ email,password,options:{emailRedirectTo:'https://tonight-s-check-in.vercel.app/'} });
+        if(error) el('authMessage').textContent=error.message;
+        else if(signUpData.session) el('authMessage').textContent='Account created. Connecting your tracker…';
+        else el('authMessage').textContent='Check your email, open the confirmation link, then return here and sign in.';
+      });
+      el('signOutButton').addEventListener('click',async()=>{ if(!cloudClient)return; const {error}=await cloudClient.auth.signOut(); if(error)el('authMessage').textContent=error.message; });
+      el('syncNowButton').addEventListener('click',()=>syncToCloud());
+      window.addEventListener('online',()=>{ if(activeUser)syncToCloud(); });
+      window.addEventListener('offline',()=>setSyncStatus('error','Saved offline'));
       el('backButton').addEventListener('click', () => { viewing = todayKey(); el('notice').textContent = ''; render(); });
       el('showAddHabit').addEventListener('click', () => { el('addHabitForm').hidden = false; el('newHabitName').focus(); });
-      el('addHabitForm').addEventListener('submit', event => { event.preventDefault(); const name = el('newHabitName').value.trim(); if (!name) return; data.customHabits.push({ id:`custom-${Date.now()}`, name }); el('newHabitName').value = ''; el('addHabitForm').hidden = true; persist(); render(); el('notice').textContent = 'New habit added.'; });
+      el('addHabitForm').addEventListener('submit', event => { event.preventDefault(); const name = el('newHabitName').value.trim(); if (!name) return; data.customHabits.push({ id:`custom-${Date.now()}`, name }); el('newHabitName').value = ''; el('addHabitForm').hidden = true; markStructure(); persist(); render(); el('notice').textContent = 'New habit added.'; });
+      updateAuthUI();
+      if (cloudClient) {
+        cloudClient.auth.onAuthStateChange((_event,session)=>setTimeout(()=>handleSession(session),0));
+        cloudClient.auth.getSession().then(({data:sessionData})=>handleSession(sessionData.session));
+      } else { setSyncStatus('error','Cloud unavailable'); el('authMessage').textContent='Cloud sync could not load. Your tracker still works on this device.'; }
       render();
     })();
   </script>
