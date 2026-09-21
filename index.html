@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0b1020">
   <link rel="icon" type="image/png" href="nightly-check-logo.png">
   <link rel="apple-touch-icon" href="nightly-check-logo.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>Nightly Accountability</title>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <style>
@@ -106,9 +107,18 @@
     .auth-form { display:grid; gap:11px; }
     .auth-form label { margin:0; color:var(--muted); font-size:.8rem; }
     .auth-form input { width:100%; margin-top:5px; padding:12px 13px; border:1px solid var(--line); border-radius:11px; background:#0a1020; color:var(--text); font:inherit; }
+    .auth-lead { color:var(--muted); margin:-8px 0 18px; font-size:.9rem; }
+    .password-wrap { position:relative; }
+    .password-wrap input { padding-right:66px; }
+    .password-toggle { position:absolute; right:7px; top:50%; transform:translateY(-50%); border:0; border-radius:8px; padding:6px 8px; background:transparent; color:var(--accent-2); font:inherit; font-size:.75rem; cursor:pointer; }
     .auth-buttons { display:flex; gap:8px; margin-top:5px; }
     .primary-button { flex:1; border:0; border-radius:11px; padding:12px 14px; background:#eeeaff; color:#171226; font:inherit; font-weight:750; cursor:pointer; }
+    .primary-button:disabled,.quiet-button:disabled { opacity:.55; cursor:wait; }
+    .text-button { width:max-content; margin:0 auto; padding:5px; border:0; background:transparent; color:var(--accent-2); font:inherit; font-size:.8rem; cursor:pointer; }
     .auth-message { min-height:1.25em; color:var(--muted); font-size:.82rem; margin:13px 0 0; }
+    .auth-message[data-tone="success"] { color:var(--good); }
+    .auth-message[data-tone="error"] { color:#ffaaaa; }
+    .auth-privacy { color:#818ba8; font-size:.72rem; margin:14px 0 0; }
     .signed-in-box { padding:15px; border:1px solid #ffffff16; border-radius:14px; background:#ffffff05; }
     .signed-in-box strong { display:block; margin-bottom:4px; }
     .hero { position:relative; min-height:100svh; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; padding:130px 24px 80px; background:#080c18; }
@@ -135,6 +145,14 @@
     .points { color:var(--accent-2); font-size:.73rem; white-space:nowrap; margin-left:auto; }
     .footer-note { display:flex; justify-content:space-between; align-items:center; gap:14px; color:var(--muted); font-size:.78rem; margin:24px 0; }
     .transfer { padding:22px; margin-bottom:14px; }
+    details.transfer { overflow:hidden; }
+    details.transfer > summary { display:flex; align-items:center; justify-content:space-between; gap:18px; margin:-22px; padding:20px 22px; cursor:pointer; list-style:none; }
+    details.transfer > summary::-webkit-details-marker { display:none; }
+    details.transfer > summary::after { content:'+'; display:grid; place-items:center; flex:0 0 29px; width:29px; height:29px; border:1px solid #ffffff25; border-radius:50%; color:var(--accent-2); font-size:1.15rem; transition:transform .2s ease; }
+    details.transfer[open] > summary::after { transform:rotate(45deg); }
+    .transfer-summary strong { display:block; font-size:.95rem; }
+    .transfer-summary span { display:block; color:var(--muted); font-size:.78rem; margin-top:2px; }
+    .transfer-content { border-top:1px solid #ffffff12; margin:20px -2px -2px; padding-top:20px; }
     .transfer-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; margin-bottom:18px; }
     .transfer-copy { color:var(--muted); margin:7px 0 0; font-size:.9rem; max-width:470px; }
     .transfer-steps { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
@@ -161,7 +179,7 @@
     @keyframes reveal-scene { from { opacity:0; transform:scale(1.05); } to { opacity:.6; transform:scale(1); } }
     @keyframes rise-in { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
     body.motion-off *,body.motion-off *::before,body.motion-off *::after { animation:none!important; scroll-behavior:auto; }
-    @media(max-width:700px) { .sync-status { display:none; } .nav-actions a { display:none; } }
+    @media(max-width:700px) { .sync-status { display:none; } .nav-actions a,.nav-actions #motionToggle { display:none; } }
     @media(max-width:520px) { .brand { font-size:.82rem; } .brand-logo { width:30px; height:30px; } .nav-actions a,.quiet-button { padding:8px 10px; font-size:.72rem; } .hero { padding-bottom:60px; } .habit { gap:8px; padding:12px 6px; } .task-actions { gap:0; } .rename-habit,.remove-habit { font-size:.72rem; padding:7px 4px; } .habit-text { overflow-wrap:anywhere; } }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation:none!important; } }
   </style>
@@ -227,27 +245,30 @@
       <div class="history-head"><h2>Daily history</h2><span class="history-hint">Tap a day to view it</span></div>
       <ul class="history-list" id="historyList"></ul>
     </section>
-    <section class="card transfer" aria-labelledby="transferTitle">
-      <div class="transfer-head"><div><p class="eyebrow">Keep a copy</p><h2 id="transferTitle">Back up or restore your tracker</h2><p class="transfer-copy">Signed-in users sync automatically. You can also keep a private backup file or restore one from another browser.</p></div></div>
-      <div class="transfer-steps">
-        <div class="transfer-step"><strong>1 · On this device</strong><span>Download a backup containing your tasks, subtasks, history, reflections, and progress.</span></div>
-        <div class="transfer-step"><strong>2 · On the other device</strong><span>Open this site and choose that backup file to restore your tracker.</span></div>
+    <details class="card transfer">
+      <summary><span class="transfer-summary"><strong>Optional data tools</strong><span>Export or restore a personal backup</span></span></summary>
+      <div class="transfer-content" aria-labelledby="transferTitle">
+        <div class="transfer-head"><div><p class="eyebrow">Extra peace of mind</p><h2 id="transferTitle">Your account already syncs automatically</h2><p class="transfer-copy">You do not need to download backups for normal use. These tools are only for keeping your own archive or moving data without signing in.</p></div></div>
+        <div class="transfer-actions"><button class="quiet-button" id="exportData" type="button">Download a backup</button><label class="quiet-button" for="importData">Restore a backup</label><input class="file-picker" id="importData" type="file" accept="application/json,.json"></div>
+        <p class="transfer-status" id="transferStatus" aria-live="polite"></p>
       </div>
-      <div class="transfer-actions"><button class="quiet-button" id="exportData" type="button">Download my data ↓</button><label class="quiet-button" for="importData">Import a backup ↑</label><input class="file-picker" id="importData" type="file" accept="application/json,.json"></div>
-      <p class="transfer-status" id="transferStatus" aria-live="polite"></p>
-    </section>
-    <div class="footer-note"><span>Local saving works offline. Sign in on each device with the same account for automatic syncing.</span></div>
+    </details>
+    <div class="footer-note"><span>Your changes save offline too. Sign in with the same account on every device to keep them in sync.</span><button class="quiet-button" id="installButton" type="button" hidden>Install app</button></div>
   </main>
   <dialog class="auth-dialog" id="authDialog">
     <div class="auth-inner">
-      <div class="auth-head"><div><p class="eyebrow">Private cloud sync</p><h2 id="authTitle">Use your tracker everywhere</h2></div><button class="icon-button" id="closeAuth" type="button" aria-label="Close">×</button></div>
+      <div class="auth-head"><div><p class="eyebrow">Nightly Accountability account</p><h2 id="authTitle">Keep every device in sync</h2></div><button class="icon-button" id="closeAuth" type="button" aria-label="Close">×</button></div>
+      <p class="auth-lead" id="authLead">Sign in on your phone and computer with the same account. Your existing habits on this device will be kept and merged safely.</p>
       <form class="auth-form" id="authForm">
         <label>Email<input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
-        <label>Password<input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters"></label>
-        <div class="auth-buttons"><button class="primary-button" type="submit">Sign in</button><button class="quiet-button" id="signUpButton" type="button">Create account</button></div>
+        <label>Password<span class="password-wrap"><input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters"><button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password">Show</button></span></label>
+        <div class="auth-buttons"><button class="primary-button" id="signInButton" type="submit">Sign in</button><button class="quiet-button" id="signUpButton" type="button">Create account</button></div>
+        <button class="text-button" id="forgotPasswordButton" type="button">Forgot password?</button>
       </form>
-      <div class="signed-in-box" id="signedInBox" hidden><strong>Signed in</strong><span id="signedInEmail"></span><div class="transfer-actions"><button class="quiet-button" id="syncNowButton" type="button">Sync now</button><button class="quiet-button" id="signOutButton" type="button">Sign out</button></div></div>
+      <form class="auth-form" id="recoveryForm" hidden><label>Choose a new password<input id="recoveryPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="At least 6 characters"></label><button class="primary-button" type="submit">Save new password</button></form>
+      <div class="signed-in-box" id="signedInBox" hidden><strong>Signed in and syncing</strong><span id="signedInEmail"></span><div class="transfer-actions"><button class="quiet-button" id="syncNowButton" type="button">Sync now</button><button class="quiet-button" id="signOutButton" type="button">Sign out</button><button class="text-button" id="clearDeviceButton" type="button">Sign out and clear this device</button></div></div>
       <p class="auth-message" id="authMessage" aria-live="polite"></p>
+      <p class="auth-privacy">Your tracker is protected by your account. Passwords are handled securely and are never stored inside this page.</p>
     </div>
   </dialog>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -302,6 +323,8 @@
       let syncChannel = null;
       let syncInFlight = false;
       let applyingRemote = false;
+      let recoveryMode = false;
+      let installPrompt = null;
       const cloudClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } }) : null;
       const getDay = key => data.days[key] || { habits:{}, reflection:'' };
       const allHabits = () => [...baseHabits.filter(habit => !data.hiddenBaseHabits.includes(habit.id)).map(habit => habit.id), ...data.customHabits.map(habit => habit.id)];
@@ -369,6 +392,19 @@
         return merged;
       }
       function setSyncStatus(state, message) { el('syncStatus').dataset.state = state; el('syncStatusText').textContent = message; }
+      function setAuthMessage(message, tone='') { el('authMessage').textContent = message; el('authMessage').dataset.tone = tone; }
+      function friendlyAuthError(error) {
+        const message = (error && error.message ? error.message : '').toLowerCase();
+        if (message.includes('invalid login credentials')) return 'That email or password is not correct. Try again or reset your password.';
+        if (message.includes('email not confirmed')) return 'Please open the confirmation email from Nightly Accountability before signing in.';
+        if (message.includes('user already registered')) return 'An account already exists for this email. Sign in instead.';
+        if (message.includes('rate limit')) return 'Too many emails were requested. Please wait a little and try again.';
+        if (message.includes('password')) return error.message;
+        return error && error.message ? error.message : 'Something went wrong. Please try again.';
+      }
+      function setAuthBusy(isBusy) {
+        ['signInButton','signUpButton','forgotPasswordButton'].forEach(id => { el(id).disabled = isBusy; });
+      }
       const persistLocal = () => localStorage.setItem(KEY, JSON.stringify(data));
       function scheduleCloudSync() {
         if (!activeUser || applyingRemote) return;
@@ -517,8 +553,9 @@
       function updateAuthUI() {
         const signedIn = Boolean(activeUser);
         el('accountButton').textContent = signedIn ? 'Account' : 'Sign in';
-        el('authForm').hidden = signedIn; el('signedInBox').hidden = !signedIn;
+        el('authForm').hidden = signedIn || recoveryMode; el('signedInBox').hidden = !signedIn || recoveryMode; el('recoveryForm').hidden = !recoveryMode;
         el('signedInEmail').textContent = signedIn ? activeUser.email : '';
+        el('authLead').textContent = recoveryMode ? 'Enter a new password for your Nightly Accountability account.' : signedIn ? 'Your habits and check-ins are connected across every device using this account.' : 'Sign in on your phone and computer with the same account. Your existing habits on this device will be kept and merged safely.';
         el('saveNote').textContent = signedIn ? 'Saved locally and synchronized with your account.' : 'Saved automatically on this device. Sign in to sync everywhere.';
         if (!signedIn) setSyncStatus('local','Saved on this device');
       }
@@ -535,10 +572,12 @@
           if (changedLocally) { applyingRemote=true; data=merged; applyHabitVersion(); persistLocal(); render(); applyingRemote=false; }
           const { error:writeError } = await cloudClient.from('tracker_state').upsert({ user_id:activeUser.id, data:merged, updated_at:new Date().toISOString() },{ onConflict:'user_id' });
           if (writeError) throw writeError;
-          setSyncStatus('synced','Synced');
+          setSyncStatus('synced','Synced just now');
+          return true;
         } catch (error) {
           console.error('Cloud sync failed',error); setSyncStatus('error',navigator.onLine ? 'Sync needs attention' : 'Saved offline');
-          el('authMessage').textContent = error.message || 'Could not sync. Your changes are still saved on this device.';
+          setAuthMessage(error.message || 'Could not sync. Your changes are still saved on this device.','error');
+          return false;
         } finally { syncInFlight=false; }
       }
       function subscribeToCloud() {
@@ -549,7 +588,7 @@
             if (!payload.new || !payload.new.data) return;
             const merged=mergeStates(data,payload.new.data), localChanged=JSON.stringify(merged)!==JSON.stringify(data), cloudChanged=JSON.stringify(merged)!==JSON.stringify(payload.new.data);
             if (localChanged) { applyingRemote=true; data=merged; applyHabitVersion(); persistLocal(); render(); applyingRemote=false; }
-            if (cloudChanged) scheduleCloudSync(); else setSyncStatus('synced','Synced');
+            if (cloudChanged) scheduleCloudSync(); else setSyncStatus('synced','Synced just now');
           }).subscribe(status => {
             if (status === 'SUBSCRIBED') setSyncStatus('synced','Synced');
             else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSyncStatus('error','Saved offline');
@@ -560,11 +599,11 @@
         if ((nextUser && activeUser && nextUser.id===activeUser.id) || (!nextUser && !activeUser)) { updateAuthUI(); return; }
         if (syncChannel && cloudClient) { await cloudClient.removeChannel(syncChannel); syncChannel=null; }
         activeUser=nextUser; updateAuthUI();
-        if (!activeUser) { el('authMessage').textContent='Signed out. Changes will continue saving on this device.'; return; }
+        if (!activeUser) { setAuthMessage('Signed out. Changes will continue saving on this device.'); return; }
         data=stampExisting(data); persistLocal();
-        el('authMessage').textContent='Connecting your saved tracker…';
-        await syncToCloud(); subscribeToCloud();
-        el('authMessage').textContent='Your tracker is connected. Sign in with this account on your other devices.';
+        setAuthMessage('Connecting your saved tracker…');
+        const connected = await syncToCloud(); subscribeToCloud();
+        if (connected) setAuthMessage('Your tracker is connected. Use this account on your other devices.','success');
       }
       function escapeHtml(value) { const node = document.createElement('div'); node.textContent = value; return node.innerHTML; }
       function changed() { persist(); render(); el('notice').textContent = 'Saved.'; clearTimeout(saveTimer); saveTimer = setTimeout(() => { el('notice').textContent = ''; }, 1300); }
@@ -615,28 +654,51 @@
       for(let i=0;i<65;i++){const star=document.createElement('i');star.className='star';star.style.cssText=`left:${(i*37.71)%100}%;top:${(i*19.37)%100}%;animation-delay:-${i%7}s`;el('stars').append(star);}
       window.addEventListener('scroll',()=>document.querySelector('.topbar').classList.toggle('scrolled',window.scrollY>40),{passive:true});
       updateMotion();
-      el('accountButton').addEventListener('click',()=>{ el('authMessage').textContent=activeUser ? 'Your account keeps this tracker synchronized across devices.' : 'Use the same email and password on every device.'; if(!el('authDialog').open) el('authDialog').showModal(); });
+      el('accountButton').addEventListener('click',()=>{ setAuthMessage(activeUser ? 'Everything is connected and syncing automatically.' : 'Use the same email and password on every device.',activeUser ? 'success' : ''); if(!el('authDialog').open) el('authDialog').showModal(); });
       el('closeAuth').addEventListener('click',()=>el('authDialog').close());
       el('authDialog').addEventListener('click',event=>{ if(event.target===el('authDialog')) el('authDialog').close(); });
+      el('passwordToggle').addEventListener('click',()=>{ const input=el('authPassword'), showing=input.type==='text'; input.type=showing?'password':'text'; el('passwordToggle').textContent=showing?'Show':'Hide'; el('passwordToggle').setAttribute('aria-label',showing?'Show password':'Hide password'); });
       el('authForm').addEventListener('submit',async event=>{
         event.preventDefault(); if(!cloudClient) return;
         const email=el('authEmail').value.trim(), password=el('authPassword').value;
-        el('authMessage').textContent='Signing in…';
+        setAuthBusy(true); setAuthMessage('Signing in…');
         const { error }=await cloudClient.auth.signInWithPassword({email,password});
-        el('authMessage').textContent=error ? error.message : 'Signed in. Connecting your tracker…';
+        setAuthBusy(false); setAuthMessage(error ? friendlyAuthError(error) : 'Signed in. Connecting your tracker…',error ? 'error' : 'success');
       });
       el('signUpButton').addEventListener('click',async()=>{
         if(!cloudClient) return;
         const email=el('authEmail').value.trim(), password=el('authPassword').value;
-        if(!email || password.length<6) { el('authMessage').textContent='Enter a valid email and a password with at least 6 characters.'; return; }
-        el('authMessage').textContent='Creating your account…';
-        const { data:signUpData, error }=await cloudClient.auth.signUp({ email,password,options:{emailRedirectTo:'https://tonight-s-check-in.vercel.app/'} });
-        if(error) el('authMessage').textContent=error.message;
-        else if(signUpData.session) el('authMessage').textContent='Account created. Connecting your tracker…';
-        else el('authMessage').textContent='Check your email, open the confirmation link, then return here and sign in.';
+        if(!email || password.length<6) { setAuthMessage('Enter a valid email and a password with at least 6 characters.','error'); return; }
+        setAuthBusy(true); setAuthMessage('Creating your account…');
+        const { data:signUpData, error }=await cloudClient.auth.signUp({ email,password,options:{emailRedirectTo:'https://tonight-s-check-in.vercel.app/',data:{app_name:'Nightly Accountability'}} });
+        setAuthBusy(false);
+        if(error) setAuthMessage(friendlyAuthError(error),'error');
+        else if(signUpData.session) setAuthMessage('Account created. Connecting your tracker…','success');
+        else setAuthMessage('A confirmation email is on the way. Open it, then return here to sign in.','success');
       });
-      el('signOutButton').addEventListener('click',async()=>{ if(!cloudClient)return; const {error}=await cloudClient.auth.signOut(); if(error)el('authMessage').textContent=error.message; });
-      el('syncNowButton').addEventListener('click',()=>syncToCloud());
+      el('forgotPasswordButton').addEventListener('click',async()=>{
+        if(!cloudClient) return; const email=el('authEmail').value.trim();
+        if(!email) { setAuthMessage('Enter your email first, then choose “Forgot password?”.','error'); el('authEmail').focus(); return; }
+        setAuthBusy(true); setAuthMessage('Sending a password reset email…');
+        const {error}=await cloudClient.auth.resetPasswordForEmail(email,{redirectTo:'https://tonight-s-check-in.vercel.app/'});
+        setAuthBusy(false); setAuthMessage(error ? friendlyAuthError(error) : 'Password reset email sent. Open it to choose a new password.',error ? 'error' : 'success');
+      });
+      el('recoveryForm').addEventListener('submit',async event=>{
+        event.preventDefault(); if(!cloudClient) return; const password=el('recoveryPassword').value;
+        if(password.length<6) { setAuthMessage('Use at least 6 characters.','error'); return; }
+        const button=event.submitter; button.disabled=true; setAuthMessage('Saving your new password…');
+        const {error}=await cloudClient.auth.updateUser({password}); button.disabled=false;
+        if(error) setAuthMessage(friendlyAuthError(error),'error'); else { recoveryMode=false; el('recoveryPassword').value=''; updateAuthUI(); setAuthMessage('Password updated. You are signed in.','success'); }
+      });
+      el('signOutButton').addEventListener('click',async()=>{ if(!cloudClient)return; setAuthMessage('Signing out…'); const {error}=await cloudClient.auth.signOut(); if(error)setAuthMessage(friendlyAuthError(error),'error'); });
+      el('clearDeviceButton').addEventListener('click',async()=>{
+        if(!confirm('Sign out and remove the offline copy from this device? Your synced data will stay safely in your account.')) return;
+        if(cloudClient) await cloudClient.auth.signOut(); localStorage.removeItem(KEY); data=freshData(); applyHabitVersion(); viewing=todayKey(); persistLocal(); render(); updateAuthUI(); setAuthMessage('Signed out and removed this device’s offline copy.','success');
+      });
+      el('syncNowButton').addEventListener('click',async()=>{ const connected=await syncToCloud(); if(connected)setAuthMessage('Everything is up to date.','success'); });
+      window.addEventListener('beforeinstallprompt',event=>{ event.preventDefault(); installPrompt=event; el('installButton').hidden=false; });
+      el('installButton').addEventListener('click',async()=>{ if(!installPrompt)return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt=null; el('installButton').hidden=true; });
+      window.addEventListener('appinstalled',()=>{ installPrompt=null; el('installButton').hidden=true; });
       window.addEventListener('online',()=>{ if(activeUser)syncToCloud(); });
       window.addEventListener('offline',()=>setSyncStatus('error','Saved offline'));
       el('backButton').addEventListener('click', () => { viewing = todayKey(); el('notice').textContent = ''; render(); });
@@ -644,9 +706,10 @@
       el('addHabitForm').addEventListener('submit', event => { event.preventDefault(); const name = el('newHabitName').value.trim(); if (!name) return; data.customHabits.push({ id:`custom-${Date.now()}`, name }); el('newHabitName').value = ''; el('addHabitForm').hidden = true; markStructure(); persist(); render(); el('notice').textContent = 'New habit added.'; });
       updateAuthUI();
       if (cloudClient) {
-        cloudClient.auth.onAuthStateChange((_event,session)=>setTimeout(()=>handleSession(session),0));
+        cloudClient.auth.onAuthStateChange((event,session)=>setTimeout(()=>{ if(event==='PASSWORD_RECOVERY'){ recoveryMode=true; updateAuthUI(); setAuthMessage('Choose a new password to finish recovering your account.'); if(!el('authDialog').open)el('authDialog').showModal(); } handleSession(session); },0));
         cloudClient.auth.getSession().then(({data:sessionData})=>handleSession(sessionData.session));
-      } else { setSyncStatus('error','Cloud unavailable'); el('authMessage').textContent='Cloud sync could not load. Your tracker still works on this device.'; }
+      } else { setSyncStatus('error','Cloud unavailable'); setAuthMessage('Cloud sync could not load. Your tracker still works on this device.','error'); }
+      if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
       render();
     })();
   </script>
