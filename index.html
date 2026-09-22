@@ -59,6 +59,8 @@
     .add-form { display:flex; gap:8px; padding:9px 5px 5px; }
     .add-form input { min-width:0; flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#0d1326; color:var(--text); font:inherit; }
     .add-form button { padding:9px 13px; border:0; border-radius:10px; background:var(--accent); color:#10162a; font:inherit; font-weight:800; cursor:pointer; }
+    .edit-form { flex-wrap:wrap; padding:8px 13px 14px 52px; }
+    .edit-form input { flex:1 1 190px; }
     .task-actions { display:flex; gap:3px; margin-left:auto; }
     .rename-habit, .remove-habit { padding:7px; border:0; border-radius:8px; background:transparent; color:var(--muted); font:inherit; cursor:pointer; }
     .rename-habit:hover, .remove-habit:hover { background:rgba(255,255,255,.08); color:var(--text); }
@@ -119,6 +121,8 @@
     .auth-message[data-tone="success"] { color:var(--good); }
     .auth-message[data-tone="error"] { color:#ffaaaa; }
     .auth-privacy { color:#818ba8; font-size:.72rem; margin:14px 0 0; }
+    .update-toast { position:fixed; z-index:30; left:50%; bottom:18px; transform:translateX(-50%); width:min(calc(100% - 28px),440px); display:flex; align-items:center; justify-content:space-between; gap:14px; padding:13px 15px; border:1px solid #ffffff25; border-radius:15px; background:#181f36; box-shadow:0 18px 50px #0009; color:var(--text); font-size:.86rem; }
+    .update-toast button { flex:0 0 auto; border:0; border-radius:10px; padding:9px 13px; background:var(--good); color:#0b1b17; font:inherit; font-weight:800; cursor:pointer; }
     .signed-in-box { padding:15px; border:1px solid #ffffff16; border-radius:14px; background:#ffffff05; }
     .signed-in-box strong { display:block; margin-bottom:4px; }
     .hero { position:relative; min-height:100svh; display:flex; align-items:flex-end; justify-content:center; overflow:hidden; padding:130px 24px 80px; background:#080c18; }
@@ -180,7 +184,7 @@
     @keyframes rise-in { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
     body.motion-off *,body.motion-off *::before,body.motion-off *::after { animation:none!important; scroll-behavior:auto; }
     @media(max-width:700px) { .sync-status { display:none; } .nav-actions a,.nav-actions #motionToggle { display:none; } }
-    @media(max-width:520px) { .brand { font-size:.82rem; } .brand-logo { width:30px; height:30px; } .nav-actions a,.quiet-button { padding:8px 10px; font-size:.72rem; } .hero { padding-bottom:60px; } .habit { gap:8px; padding:12px 6px; } .task-actions { gap:0; } .rename-habit,.remove-habit { font-size:.72rem; padding:7px 4px; } .habit-text { overflow-wrap:anywhere; } }
+    @media(max-width:520px) { .brand { font-size:.82rem; } .brand-logo { width:30px; height:30px; } .nav-actions a,.quiet-button { padding:8px 10px; font-size:.72rem; } .hero { padding-bottom:60px; } .habit { gap:8px; padding:12px 6px; } .task-actions { gap:0; } .rename-habit,.remove-habit { font-size:.72rem; padding:7px 4px; } .habit-text { overflow-wrap:anywhere; } .edit-form { padding-left:6px; } }
     @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation:none!important; } }
   </style>
 </head>
@@ -216,10 +220,10 @@
     </div>
 
     <section class="card section" aria-label="Daily habits" id="habitSection">
-      <div class="task-intro"><p class="eyebrow">Make it your own</p><h2>Add your daily essential tasks and track them</h2><p>Start with a few habits that matter to you. Add, rename, or remove any task, and break bigger goals into subtasks.</p><p id="starterHint" hidden>We’ve loaded five starter habits to help you begin. Change them to fit your day.</p></div>
+      <div class="task-intro"><p class="eyebrow">Make it your own</p><h2>Add your daily essential tasks and track them</h2><p>Start with a few habits that matter to you. Add, edit, or remove any task, and break bigger goals into subtasks.</p><p id="starterHint" hidden>We’ve loaded five starter habits to help you begin. Change them to fit your day.</p></div>
       <div id="habitList"></div>
       <button class="add-habit" id="showAddHabit" type="button"><span class="add-icon" aria-hidden="true">+</span>Add another habit</button>
-      <form class="add-form" id="addHabitForm" hidden><input id="newHabitName" maxlength="45" placeholder="e.g. Read for 20 minutes" aria-label="New habit name"><button type="submit">Add</button></form>
+      <form class="add-form edit-form" id="addHabitForm" hidden><input id="newHabitName" maxlength="45" placeholder="Task name" aria-label="New task name"><input id="newHabitDetail" maxlength="70" placeholder="Short description (optional)" aria-label="New task description"><button type="submit">Add</button></form>
     </section>
 
     <section class="card reflection">
@@ -271,6 +275,7 @@
       <p class="auth-privacy">Your tracker is protected by your account. Passwords are handled securely and are never stored inside this page.</p>
     </div>
   </dialog>
+  <div class="update-toast" id="updateToast" role="status" hidden><span>A newer version of Nightly Accountability is ready.</span><button id="refreshApp" type="button">Update now</button></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (() => {
@@ -298,7 +303,7 @@
       const toDate = key => new Date(key + 'T12:00:00');
       const displayDate = key => toDate(key).toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric', year:'numeric' });
       const shortDate = key => toDate(key).toLocaleDateString(undefined, { month:'short', day:'numeric', year: toDate(key).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
-      const freshData = () => ({ starterVersion:2, days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{}, _sync:{ fields:{}, structure:'' } });
+      const freshData = () => ({ starterVersion:2, days:{}, customHabits:[], subtasks:{}, hiddenBaseHabits:[], renamedBaseHabits:{}, editedBaseHabitDetails:{}, _sync:{ fields:{}, structure:'' } });
       const clone = value => JSON.parse(JSON.stringify(value));
       function normalizeData(candidate) {
         const value = candidate && typeof candidate === 'object' ? candidate : freshData();
@@ -307,6 +312,7 @@
         if (!value.subtasks || typeof value.subtasks !== 'object') value.subtasks = {};
         if (!Array.isArray(value.hiddenBaseHabits)) value.hiddenBaseHabits = [];
         if (!value.renamedBaseHabits || typeof value.renamedBaseHabits !== 'object') value.renamedBaseHabits = {};
+        if (!value.editedBaseHabitDetails || typeof value.editedBaseHabitDetails !== 'object') value.editedBaseHabitDetails = {};
         if (!value._sync || typeof value._sync !== 'object') value._sync = { fields:{}, structure:'' };
         if (!value._sync.fields || typeof value._sync.fields !== 'object') value._sync.fields = {};
         if (typeof value._sync.structure !== 'string') value._sync.structure = '';
@@ -328,6 +334,14 @@
       const cloudClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } }) : null;
       const getDay = key => data.days[key] || { habits:{}, reflection:'' };
       const allHabits = () => [...baseHabits.filter(habit => !data.hiddenBaseHabits.includes(habit.id)).map(habit => habit.id), ...data.customHabits.map(habit => habit.id)];
+      const visibleTasks = () => [
+        ...baseHabits.filter(task => !data.hiddenBaseHabits.includes(task.id)).map(task => ({
+          ...task,
+          name:data.renamedBaseHabits[task.id] || task.name,
+          detail:Object.prototype.hasOwnProperty.call(data.editedBaseHabitDetails,task.id) ? data.editedBaseHabitDetails[task.id] : task.detail
+        })),
+        ...data.customHabits
+      ];
       const score = day => allHabits().reduce((total, habit) => {
         const subtasks = data.subtasks[habit] || [];
         if (!subtasks.length) return total + Boolean(day.habits && day.habits[habit]);
@@ -335,7 +349,7 @@
         return total + (completed / subtasks.length);
       }, 0);
       const formatScore = value => Number(value.toFixed(2)).toString();
-      const hasMeaningfulData = value => Object.keys(value.days || {}).length > 0 || (value.customHabits || []).length > 0 || (value.hiddenBaseHabits || []).length > 0 || Object.keys(value.renamedBaseHabits || {}).length > 0 || Object.keys(value.subtasks || {}).length > 0;
+      const hasMeaningfulData = value => Object.keys(value.days || {}).length > 0 || (value.customHabits || []).length > 0 || (value.hiddenBaseHabits || []).length > 0 || Object.keys(value.renamedBaseHabits || {}).length > 0 || Object.keys(value.editedBaseHabitDetails || {}).length > 0 || Object.keys(value.subtasks || {}).length > 0;
       const stamp = () => new Date().toISOString();
       const markField = path => { data._sync.fields[path] = stamp(); };
       const markStructure = () => { data._sync.structure = stamp(); };
@@ -369,6 +383,7 @@
           subtasks:clone(structureSource.subtasks),
           hiddenBaseHabits:clone(structureSource.hiddenBaseHabits),
           renamedBaseHabits:clone(structureSource.renamedBaseHabits),
+          editedBaseHabitDetails:clone(structureSource.editedBaseHabitDetails),
           days:{},
           _sync:{ structure:localStructure >= remoteStructure ? localStructure : remoteStructure, fields:{} }
         });
@@ -434,7 +449,7 @@
         return { average: keys.reduce((sum, key) => sum + score(getDay(key)), 0) / keys.length, count:keys.length, keys };
       }
       function renderReview(week) {
-        const tasks = [...baseHabits.filter(h => !data.hiddenBaseHabits.includes(h.id)).map(h => ({...h,name:data.renamedBaseHabits[h.id] || h.name})),...data.customHabits];
+        const tasks = visibleTasks();
         el('starterHint').hidden = data.starterVersion !== 2 || Object.keys(data.days).length > 0;
         const ready = Boolean(week && tasks.length);
         el('reviewGrid').hidden = !ready; el('reviewMethod').hidden = !ready;
@@ -496,11 +511,11 @@
       }
       function renderHabits() {
         const container = el('habitList'); container.innerHTML = '';
-        const tasks = [...baseHabits.filter(task => !data.hiddenBaseHabits.includes(task.id)).map(task => ({ ...task, name:data.renamedBaseHabits[task.id] || task.name })), ...data.customHabits];
+        const tasks = visibleTasks();
         tasks.forEach(task => {
           const group = document.createElement('div'); group.className = 'task-group';
           const isBaseTask = baseHabits.some(item => item.id === task.id);
-          const actions = `<span class="task-actions"><button class="rename-habit" type="button" aria-label="Rename ${escapeHtml(task.name)}">Rename</button><button class="remove-habit" type="button" aria-label="Remove ${escapeHtml(task.name)}">Remove</button></span>`;
+          const actions = `<span class="task-actions"><button class="rename-habit" type="button" aria-label="Edit ${escapeHtml(task.name)}">Edit</button><button class="remove-habit" type="button" aria-label="Remove ${escapeHtml(task.name)}">Remove</button></span>`;
           group.innerHTML = `<label class="habit"><input type="checkbox" data-habit="${task.id}"><span class="habit-text">${escapeHtml(task.name)}${task.detail ? `<span class="habit-sub">${escapeHtml(task.detail)}</span>` : ''}</span>${actions}</label><div class="subtasks"></div><button class="add-subtask" type="button">+ Add subtask</button>`;
           const subtaskList = group.querySelector('.subtasks');
           (data.subtasks[task.id] || []).forEach(subtask => {
@@ -514,7 +529,7 @@
             else data.customHabits = data.customHabits.filter(item => item.id !== task.id);
             delete data.subtasks[task.id]; markStructure(); persist(); render();
           });
-          group.querySelector('.rename-habit').addEventListener('click', event => { event.preventDefault(); showRenameForm(group, task, isBaseTask); });
+          group.querySelector('.rename-habit').addEventListener('click', event => { event.preventDefault(); showEditTaskForm(group, task, isBaseTask); });
           group.querySelector('.add-subtask').addEventListener('click', () => showSubtaskForm(group, task.id));
           container.append(group);
         });
@@ -526,15 +541,15 @@
         form.addEventListener('submit', event => { event.preventDefault(); const input = form.querySelector('input'); const name = input.value.trim(); if (!name) return; if (!data.subtasks[taskId]) data.subtasks[taskId] = []; data.subtasks[taskId].push({ id:`sub-${Date.now()}`, name }); markStructure(); persist(); render(); el('notice').textContent = 'Subtask added.'; });
         group.append(form); form.querySelector('input').focus();
       }
-      function showRenameForm(group, task, isBaseTask) {
-        if (group.querySelector('.rename-form')) return group.querySelector('.rename-form input').focus();
-        const form = document.createElement('form'); form.className = 'add-form rename-form';
-        form.innerHTML = `<input maxlength="45" value="${escapeHtml(task.name)}" aria-label="New task name"><button type="submit">Save</button>`;
+      function showEditTaskForm(group, task, isBaseTask) {
+        if (group.querySelector('.edit-task-form')) return group.querySelector('.edit-task-form input').focus();
+        const form = document.createElement('form'); form.className = 'add-form edit-form edit-task-form';
+        form.innerHTML = `<input maxlength="45" value="${escapeHtml(task.name)}" aria-label="Task name"><input maxlength="70" value="${escapeHtml(task.detail || '')}" placeholder="Short description (optional)" aria-label="Task description"><button type="submit">Save</button>`;
         form.addEventListener('submit', event => {
-          event.preventDefault(); const input = form.querySelector('input'); const name = input.value.trim(); if (!name) return;
-          if (isBaseTask) data.renamedBaseHabits[task.id] = name;
-          else { const customTask = data.customHabits.find(item => item.id === task.id); if (customTask) customTask.name = name; }
-          markStructure(); persist(); render(); el('notice').textContent = 'Task renamed.';
+          event.preventDefault(); const inputs = form.querySelectorAll('input'), name = inputs[0].value.trim(), detail = inputs[1].value.trim(); if (!name) return;
+          if (isBaseTask) { data.renamedBaseHabits[task.id] = name; data.editedBaseHabitDetails[task.id] = detail; }
+          else { const customTask = data.customHabits.find(item => item.id === task.id); if (customTask) { customTask.name = name; customTask.detail = detail; } }
+          markStructure(); persist(); render(); el('notice').textContent = 'Task updated.';
         });
         group.append(form); form.querySelector('input').focus(); form.querySelector('input').select();
       }
@@ -637,6 +652,7 @@
             subtasks: imported.subtasks && typeof imported.subtasks === 'object' ? imported.subtasks : {},
             hiddenBaseHabits: Array.isArray(imported.hiddenBaseHabits) ? imported.hiddenBaseHabits : [],
             renamedBaseHabits: imported.renamedBaseHabits && typeof imported.renamedBaseHabits === 'object' ? imported.renamedBaseHabits : {},
+            editedBaseHabitDetails: imported.editedBaseHabitDetails && typeof imported.editedBaseHabitDetails === 'object' ? imported.editedBaseHabitDetails : {},
             _sync:{fields:{},structure:''}
           });
           const importedAt=stamp(); data._sync.structure=importedAt;
@@ -703,13 +719,27 @@
       window.addEventListener('offline',()=>setSyncStatus('error','Saved offline'));
       el('backButton').addEventListener('click', () => { viewing = todayKey(); el('notice').textContent = ''; render(); });
       el('showAddHabit').addEventListener('click', () => { el('addHabitForm').hidden = false; el('newHabitName').focus(); });
-      el('addHabitForm').addEventListener('submit', event => { event.preventDefault(); const name = el('newHabitName').value.trim(); if (!name) return; data.customHabits.push({ id:`custom-${Date.now()}`, name }); el('newHabitName').value = ''; el('addHabitForm').hidden = true; markStructure(); persist(); render(); el('notice').textContent = 'New habit added.'; });
+      el('addHabitForm').addEventListener('submit', event => { event.preventDefault(); const name = el('newHabitName').value.trim(), detail = el('newHabitDetail').value.trim(); if (!name) return; data.customHabits.push({ id:`custom-${Date.now()}`, name, detail }); el('newHabitName').value = ''; el('newHabitDetail').value = ''; el('addHabitForm').hidden = true; markStructure(); persist(); render(); el('notice').textContent = 'New habit added.'; });
       updateAuthUI();
       if (cloudClient) {
         cloudClient.auth.onAuthStateChange((event,session)=>setTimeout(()=>{ if(event==='PASSWORD_RECOVERY'){ recoveryMode=true; updateAuthUI(); setAuthMessage('Choose a new password to finish recovering your account.'); if(!el('authDialog').open)el('authDialog').showModal(); } handleSession(session); },0));
         cloudClient.auth.getSession().then(({data:sessionData})=>handleSession(sessionData.session));
       } else { setSyncStatus('error','Cloud unavailable'); setAuthMessage('Cloud sync could not load. Your tracker still works on this device.','error'); }
-      if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+      if('serviceWorker' in navigator && location.protocol.startsWith('http')) window.addEventListener('load',async()=>{
+        const hadController=Boolean(navigator.serviceWorker.controller);
+        try {
+          const registration=await navigator.serviceWorker.register('sw.js');
+          const showUpdate=()=>{ if(hadController) el('updateToast').hidden=false; };
+          if(registration.waiting) showUpdate();
+          registration.addEventListener('updatefound',()=>{
+            const worker=registration.installing; if(!worker)return;
+            worker.addEventListener('statechange',()=>{ if(worker.state==='installed' && navigator.serviceWorker.controller) showUpdate(); });
+          });
+          navigator.serviceWorker.addEventListener('controllerchange',showUpdate);
+          el('refreshApp').addEventListener('click',()=>location.reload());
+          registration.update().catch(()=>{});
+        } catch {}
+      });
       render();
     })();
   </script>

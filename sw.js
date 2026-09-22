@@ -1,4 +1,5 @@
-const CACHE = 'nightly-accountability-v3';
+// Increment this version with every release so installed apps refresh their shell.
+const CACHE = 'nightly-accountability-v4';
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/nightly-check-logo.png', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', event => {
